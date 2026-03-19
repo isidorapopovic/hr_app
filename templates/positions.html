@@ -1,0 +1,71 @@
+
+{% extends "layout.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h2>Positions</h2>
+        <p>Manage job openings and internal roles.</p>
+    </div>
+</section>
+
+<section class="grid-2">
+    <div class="card">
+        <h3>Add position</h3>
+        <form method="post" class="form-grid">
+            <label>
+                Position title
+                <input type="text" name="position_title" required>
+            </label>
+
+            <label>
+                Department
+                <select name="department_id" required>
+                    <option value="">Select department</option>
+                    {% for department in departments %}
+                    <option value="{{ department['department_id'] }}">{{ department["department_name"] }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Position level
+                <input type="text" name="position_level" placeholder="Junior / Mid / Senior">
+            </label>
+
+            <label>
+                Active
+                <select name="is_active">
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </label>
+
+            <button type="submit">Create position</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Position list</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Department</th>
+                    <th>Level</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in positions %}
+                <tr>
+                    <td>{{ row["position_title"] }}</td>
+                    <td>{{ row["department_name"] }}</td>
+                    <td>{{ row["position_level"] or "-" }}</td>
+                    <td>{{ "Yes" if row["is_active"] == 1 else "No" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

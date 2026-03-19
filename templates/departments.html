@@ -1,0 +1,45 @@
+
+{% extends "layout.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h2>Departments</h2>
+        <p>Create and review company departments.</p>
+    </div>
+</section>
+
+<section class="grid-2">
+    <div class="card">
+        <h3>Add department</h3>
+        <form method="post" class="form-grid">
+            <label>
+                Department name
+                <input type="text" name="department_name" placeholder="e.g. Operations" required>
+            </label>
+            <button type="submit">Create department</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>Department list</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Positions</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in departments %}
+                <tr>
+                    <td>{{ row["department_name"] }}</td>
+                    <td>{{ row["positions_count"] }}</td>
+                    <td>{{ row["created_at"] | short_date }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

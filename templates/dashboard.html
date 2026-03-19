@@ -1,0 +1,107 @@
+
+{% extends "layout.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h2>Dashboard</h2>
+        <p>Overview of hiring activity and current HR status.</p>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <div class="card stat-card">
+        <span>Total applicants</span>
+        <strong>{{ stats.total_applicants }}</strong>
+    </div>
+    <div class="card stat-card">
+        <span>In process</span>
+        <strong>{{ stats.in_process }}</strong>
+    </div>
+    <div class="card stat-card">
+        <span>Hired</span>
+        <strong>{{ stats.hired_count }}</strong>
+    </div>
+    <div class="card stat-card">
+        <span>Active employees</span>
+        <strong>{{ stats.active_employees }}</strong>
+    </div>
+    <div class="card stat-card">
+        <span>Avg days to hire</span>
+        <strong>{{ stats.avg_days_to_hire }}</strong>
+    </div>
+    <div class="card stat-card">
+        <span>Offer acceptance rate</span>
+        <strong>{{ stats.offer_acceptance_rate }}%</strong>
+    </div>
+</section>
+
+<section class="grid-2">
+    <div class="card">
+        <h3>Applicant status breakdown</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in status_counts %}
+                <tr>
+                    <td><span class="badge">{{ row["application_status"] | status_label }}</span></td>
+                    <td>{{ row["total"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Department hiring summary</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Department</th>
+                    <th>Applicants</th>
+                    <th>Hires</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in department_summary %}
+                <tr>
+                    <td>{{ row["department_name"] }}</td>
+                    <td>{{ row["applicants"] }}</td>
+                    <td>{{ row["hires"] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card">
+    <h3>Recent actions</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Person</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Performed by</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in recent_actions %}
+            <tr>
+                <td>{{ row["action_date"] | short_date }}</td>
+                <td>{{ row["person_name"] or "-" }}</td>
+                <td><span class="badge">{{ row["action_type"] | status_label }}</span></td>
+                <td>{{ row["notes"] or "-" }}</td>
+                <td>{{ row["performed_by"] or "-" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

@@ -1,0 +1,105 @@
+
+{% extends "layout.html" %}
+{% block content %}
+<section class="page-header actions-header">
+    <div>
+        <h2>{{ employee["full_name"] }}</h2>
+        <p>Employee detail and lifecycle timeline.</p>
+    </div>
+    <a class="text-link" href="{{ url_for('employees') }}">← Back to employees</a>
+</section>
+
+<section class="grid-2">
+    <div class="card">
+        <h3>Profile</h3>
+        <dl class="detail-list">
+            <dt>Status</dt>
+            <dd><span class="badge">{{ employee["employment_status"] | status_label }}</span></dd>
+
+            <dt>Position</dt>
+            <dd>{{ employee["position_title"] or "-" }}</dd>
+
+            <dt>Department</dt>
+            <dd>{{ employee["department_name"] or "-" }}</dd>
+
+            <dt>Hire date</dt>
+            <dd>{{ employee["hire_date"] }}</dd>
+
+            <dt>End date</dt>
+            <dd>{{ employee["end_date"] or "-" }}</dd>
+
+            <dt>Applicant ID</dt>
+            <dd>{{ employee["applicant_id"] or "-" }}</dd>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h3>Update employee</h3>
+        <form method="post" action="{{ url_for('employee_update_status', employee_id=employee['employee_id']) }}" class="form-grid">
+            <label>
+                New status
+                <select name="new_status" required>
+                    {% for status in statuses %}
+                    <option value="{{ status }}" {% if status == employee["employment_status"] %}selected{% endif %}>{{ status | status_label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Position
+                <select name="position_id">
+                    {% for row in positions %}
+                    <option value="{{ row['position_id'] }}" {% if row['position_id'] == employee["position_id"] %}selected{% endif %}>
+                        {{ row["position_title"] }} — {{ row["department_name"] }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>
+                Performed by
+                <input type="text" name="performed_by" value="HR Admin">
+            </label>
+
+            <label>
+                Notes
+                <textarea name="notes" rows="4" placeholder="Optional note about this update"></textarea>
+            </label>
+
+            <button type="submit">Save update</button>
+        </form>
+    </div>
+</section>
+
+<section class="card">
+    <h3>Employee action history</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Action</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Performed by</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for action in actions %}
+            <tr>
+                <td>{{ action["action_date"] }}</td>
+                <td><span class="badge">{{ action["action_type"] | status_label }}</span></td>
+                <td>{{ action["old_status"] | status_label }}</td>
+                <td>{{ action["new_status"] | status_label }}</td>
+                <td>{{ action["performed_by"] or "-" }}</td>
+                <td>{{ action["notes"] or "-" }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">No actions found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

@@ -1,0 +1,54 @@
+
+{% extends "layout.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h2>New applicant</h2>
+        <p>Add a new candidate into the pipeline.</p>
+    </div>
+</section>
+
+<section class="card narrow-card">
+    <form method="post" class="form-grid">
+        <label>
+            Full name
+            <input type="text" name="full_name" required>
+        </label>
+
+        <label>
+            Years of experience
+            <input type="number" step="0.1" min="0" name="years_experience" value="0">
+        </label>
+
+        <label>
+            Current or last position
+            <input type="text" name="current_or_last_position" placeholder="e.g. Junior Developer">
+        </label>
+
+        <label>
+            Applied position
+            <select name="position_id">
+                <option value="">Not assigned yet</option>
+                {% for row in positions %}
+                <option value="{{ row['position_id'] }}">{{ row["position_title"] }} — {{ row["department_name"] }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>
+            Entered by
+            <input type="text" name="performed_by" value="HR Admin">
+        </label>
+
+        <label>
+            Notes
+            <textarea name="notes" rows="4" placeholder="Optional notes"></textarea>
+        </label>
+
+        <div class="form-actions">
+            <button type="submit">Save applicant</button>
+            <a class="text-link" href="{{ url_for('applicants') }}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
