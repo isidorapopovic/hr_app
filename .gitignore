@@ -1,0 +1,6 @@
+﻿.vs/
+__pycache__/
+*.pyc
+venv/
+hr_system.db
+instance/
