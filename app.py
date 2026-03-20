@@ -1,11 +1,21 @@
-
-import os
+﻿import os
 import sqlite3
 from datetime import datetime
 from flask import Flask, g, render_template, request, redirect, url_for, flash
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Save database in the same folder as app.py
 DATABASE = os.path.join(BASE_DIR, "hr_system.db")
+
+# Make sure the folder exists
+os.makedirs(BASE_DIR, exist_ok=True)
+
+# Explicitly create the file if it does not exist yet
+if not os.path.exists(DATABASE):
+    open(DATABASE, "a").close()
+
+print("Database path:", DATABASE)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "change-me-in-production"
@@ -31,18 +41,25 @@ def now_ts():
 
 
 def init_db():
+    print("Initialising database at:", DATABASE)
+
     db = sqlite3.connect(DATABASE)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys = ON;")
+
     with open(os.path.join(BASE_DIR, "schema.sql"), "r", encoding="utf-8") as f:
         db.executescript(f.read())
+
     db.commit()
 
     department_count = db.execute("SELECT COUNT(*) AS c FROM departments").fetchone()["c"]
     if department_count == 0:
         seed_data(db)
+
     db.commit()
     db.close()
+
+    print("Database created or updated successfully.")
 
 
 def seed_data(db):
