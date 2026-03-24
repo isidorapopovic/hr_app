@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,12 +14,13 @@
                 <h1 class="brand">HR Tracker</h1>
                 <p class="subtitle">Simple talent acquisition and employee tracking</p>
             </div>
-            <nav class="nav">
-                <a href="{{ url_for('dashboard') }}">Dashboard</a>
-                <a href="{{ url_for('departments') }}">Departments</a>
-                <a href="{{ url_for('positions') }}">Positions</a>
-                <a href="{{ url_for('applicants') }}">Applicants</a>
-                <a href="{{ url_for('employees') }}">Employees</a>
+            <nav>
+                <a href="{{ url_for('dashboard.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('departments.departments') }}">Departments</a>
+                <a href="{{ url_for('positions.positions') }}">Positions</a>
+                <a href="{{ url_for('applicants.applicants') }}">Applicants</a>
+                <a href="{{ url_for('applicants.applicant_new') }}">New Applicant</a>
+                <a href="{{ url_for('employees.employees') }}">Employees</a>
             </nav>
         </div>
     </header>

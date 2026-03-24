@@ -1,5 +1,4 @@
-
-{% extends "layout.html" %}
+﻿{% extends "layout.html" %}
 {% block content %}
 <section class="page-header">
     <div>
@@ -9,7 +8,7 @@
 </section>
 
 <section class="card narrow-card">
-    <form method="post" class="form-grid">
+    <form method="post" action="{{ url_for('applicants.applicant_new') }}" class="form-grid">
         <label>
             Full name
             <input type="text" name="full_name" required>
@@ -47,7 +46,7 @@
 
         <div class="form-actions">
             <button type="submit">Save applicant</button>
-            <a class="text-link" href="{{ url_for('applicants') }}">Cancel</a>
+            <a class="text-link" href="{{ url_for('applicants.applicants') }}">Cancel</a>
         </div>
     </form>
 </section>

@@ -1,12 +1,11 @@
-
-{% extends "layout.html" %}
+﻿{% extends "layout.html" %}
 {% block content %}
 <section class="page-header actions-header">
     <div>
         <h2>{{ applicant["full_name"] }}</h2>
         <p>Applicant detail and hiring timeline.</p>
     </div>
-    <a class="text-link" href="{{ url_for('applicants') }}">← Back to applicants</a>
+    <a class="text-link" href="{{ url_for('applicants.applicants') }}">← Back to applicants</a>
 </section>
 
 <section class="grid-2">
@@ -37,9 +36,9 @@
             <dt>Employee created</dt>
             <dd>
                 {% if employee %}
-                    <a class="text-link" href="{{ url_for('employee_detail', employee_id=employee['employee_id']) }}">Yes — open employee record</a>
+                <a class="text-link" href="{{ url_for('employees.employee_detail', employee_id=employee['employee_id']) }}">Yes — open employee record</a>
                 {% else %}
-                    No
+                No
                 {% endif %}
             </dd>
         </dl>
@@ -47,7 +46,7 @@
 
     <div class="card">
         <h3>Update applicant</h3>
-        <form method="post" action="{{ url_for('applicant_update_status', applicant_id=applicant['applicant_id']) }}" class="form-grid">
+        <form method="post" action="{{ url_for('applicants.applicant_update_status', applicant_id=applicant['applicant_id']) }}" class="form-grid">
             <label>
                 New status
                 <select name="new_status" required>
@@ -61,7 +60,7 @@
                 Position
                 <select name="position_id">
                     {% for row in positions %}
-                    <option value="{{ row['position_id'] }}" {% if row['position_id'] == applicant["position_id"] %}selected{% endif %}>
+                    <option value="{{ row['position_id'] }}" {% if row['position_id']= =applicant["position_id"] %}selected{% endif %}>
                         {{ row["position_title"] }} — {{ row["department_name"] }}
                     </option>
                     {% endfor %}
