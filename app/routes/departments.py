@@ -2,11 +2,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.utils import now_ts
+from app.auth import login_required
 
 departments_bp = Blueprint("departments", __name__)
 
 
 @departments_bp.route("/departments", methods=["GET", "POST"])
+@login_required
 def departments():
     db = get_db()
 

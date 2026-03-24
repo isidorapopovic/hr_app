@@ -1,5 +1,6 @@
 ﻿import os
 from flask import Flask
+from app.routes.auth import auth_bp
 
 from config import Config
 from app.db import close_db
@@ -22,6 +23,7 @@ def create_app():
 
     app.teardown_appcontext(close_db)
     register_filters(app)
+    app.register_blueprint(auth_bp)
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(departments_bp)

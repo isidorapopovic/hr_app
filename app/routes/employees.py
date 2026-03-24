@@ -3,11 +3,14 @@
 from app.db import get_db
 from app.utils import now_ts
 from app.services.hr_service import create_action, get_department_id_for_position
+from app.auth import login_required
 
 employees_bp = Blueprint("employees", __name__)
 
 
+
 @employees_bp.route("/employees")
+@login_required
 def employees():
     db = get_db()
     status_filter = request.args.get("status", "").strip()
