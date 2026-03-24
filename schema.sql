@@ -1,4 +1,4 @@
-
+﻿
 PRAGMA foreign_keys = OFF;
 
 DROP TABLE IF EXISTS actions;
@@ -102,4 +102,34 @@ CREATE TABLE actions (
     FOREIGN KEY (old_department_id) REFERENCES departments(department_id),
     FOREIGN KEY (new_department_id) REFERENCES departments(department_id),
     CHECK (applicant_id IS NOT NULL OR employee_id IS NOT NULL)
+);
+CREATE TABLE IF NOT EXISTS departments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS employees (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT NOT NULL,
+    email TEXT,
+    department_id INTEGER,
+    workload_percent INTEGER DEFAULT 0,
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    department_id INTEGER NOT NULL,
+    deadline TEXT,
+    status TEXT DEFAULT 'Active',
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+CREATE TABLE IF NOT EXISTS employee_projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );
