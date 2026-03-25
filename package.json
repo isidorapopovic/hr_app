@@ -1,7 +1,6 @@
 ﻿{
   "name": "hr_app_node",
   "version": "1.0.0",
-  "description": "HR app migrated from Flask to Node.js",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -11,8 +10,7 @@
     "better-sqlite3": "^11.7.0",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
-    "express-session": "^1.18.1",
-    "method-override": "^3.0.0"
+    "express-session": "^1.18.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

@@ -1,0 +1,62 @@
+﻿<%- include('partials/header') %>
+
+<section class="card">
+  <h2>Project Workload</h2>
+  <p>Shows how many people are assigned to each project.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Deadline</th>
+          <th>Assigned people</th>
+          <th>Names</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% projectAssignments.forEach(project => { %>
+          <tr>
+            <td><%= project.project_name %></td>
+            <td><%= project.department_name || '-' %></td>
+            <td><%= project.status || '-' %></td>
+            <td><%= project.deadline || '-' %></td>
+            <td><%= project.assigned_people || 0 %></td>
+            <td><%= project.assigned_names || '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Employees without project assignment</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Department</th>
+          <th>Workload %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% employeesWithoutProjects.forEach(employee => { %>
+          <tr>
+            <td><%= employee.full_name %></td>
+            <td><%= employee.email || '-' %></td>
+            <td><%= employee.department_name || '-' %></td>
+            <td><%= employee.workload_percent ?? 0 %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

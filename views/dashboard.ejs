@@ -1,24 +1,109 @@
 ﻿<%- include('partials/header') %>
 
-<h2>Dashboard</h2>
+<section class="card">
+  <h2>Dashboard</h2>
+  <p>Overview of hiring activity and current HR status.</p>
+</section>
 
-<div class="grid-4">
+<div class="grid-3">
   <div class="card stat-card">
-    <h3>Employees</h3>
-    <p><%= stats.employees %></p>
+    <h3>Total applicants</h3>
+    <p><%= stats.total_applicants %></p>
   </div>
   <div class="card stat-card">
-    <h3>Departments</h3>
-    <p><%= stats.departments %></p>
+    <h3>In process</h3>
+    <p><%= stats.in_process %></p>
   </div>
   <div class="card stat-card">
-    <h3>Jobs</h3>
-    <p><%= stats.jobs %></p>
+    <h3>Hired</h3>
+    <p><%= stats.hired_count %></p>
   </div>
   <div class="card stat-card">
-    <h3>Applicants</h3>
-    <p><%= stats.applicants %></p>
+    <h3>Active employees</h3>
+    <p><%= stats.active_employees %></p>
+  </div>
+  <div class="card stat-card">
+    <h3>Avg days to hire</h3>
+    <p><%= stats.avg_days_to_hire %></p>
+  </div>
+  <div class="card stat-card">
+    <h3>Offer acceptance rate</h3>
+    <p><%= stats.offer_acceptance_rate %>%</p>
   </div>
 </div>
+
+<section class="card">
+  <h3>Applicant status breakdown</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% statusCounts.forEach(row => { %>
+          <tr>
+            <td><%= row.application_status %></td>
+            <td><%= row.total %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Department hiring summary</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Applicants</th>
+          <th>Hires</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% departmentSummary.forEach(row => { %>
+          <tr>
+            <td><%= row.department_name %></td>
+            <td><%= row.applicants %></td>
+            <td><%= row.hires %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Recent actions</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Person</th>
+          <th>Action</th>
+          <th>Details</th>
+          <th>Performed by</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% recentActions.forEach(row => { %>
+          <tr>
+            <td><%= row.action_date || '-' %></td>
+            <td><%= row.person_name || '-' %></td>
+            <td><%= row.action_type || '-' %></td>
+            <td><%= row.notes || '-' %></td>
+            <td><%= row.performed_by || '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <%- include('partials/footer') %>

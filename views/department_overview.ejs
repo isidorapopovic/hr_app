@@ -1,0 +1,40 @@
+﻿<%- include('partials/header') %>
+
+<section class="card">
+  <h2>Departments Overview</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Positions</th>
+          <th>Applicants</th>
+          <th>In process</th>
+          <th>Hires</th>
+          <th>Active employees</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!overview.length) { %>
+          <tr>
+            <td colspan="6">No overview data found.</td>
+          </tr>
+        <% } %>
+
+        <% overview.forEach(row => { %>
+          <tr>
+            <td><%= row.department_name %></td>
+            <td><%= row.positions_count || 0 %></td>
+            <td><%= row.applicants_count || 0 %></td>
+            <td><%= row.in_process_count || 0 %></td>
+            <td><%= row.hires_count || 0 %></td>
+            <td><%= row.active_employee_count || 0 %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

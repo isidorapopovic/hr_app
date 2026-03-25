@@ -10,23 +10,25 @@
     <div class="container topbar-inner">
       <div>
         <h1 class="brand">HR App</h1>
-        <p class="subtitle">Human resources management platform</p>
+        <p class="subtitle">Recruitment and HR tracking</p>
       </div>
 
       <nav class="nav">
         <a href="/">Home</a>
+        <a href="/jobs">Job Postings</a>
+
         <% if (user) { %>
           <a href="/dashboard">Dashboard</a>
-          <a href="/employees">Employees</a>
           <a href="/departments">Departments</a>
-          <a href="/jobs">Jobs</a>
+          <a href="/departments/overview">Departments Overview</a>
           <a href="/applicants">Applicants</a>
-
+          <a href="/employees">Employees</a>
+          <a href="/workload">Workload</a>
           <form action="/logout" method="POST" style="display:inline;">
             <button type="submit">Logout</button>
           </form>
         <% } else { %>
-          <a href="/login">Login</a>
+          <a href="/login">HR Login</a>
         <% } %>
       </nav>
     </div>

@@ -1,9 +1,34 @@
 ﻿<%- include('partials/header') %>
 
 <section class="hero">
-  <h2>Welcome to the HR Management App</h2>
-  <p>Track employees, departments, jobs, and applicants in one place.</p>
-  <a class="button-link" href="/login">Login to continue</a>
+  <h2>Welcome</h2>
+  <p>Current job postings are visible to everyone. HR pages require login.</p>
+  <div class="hero-actions">
+    <a class="button-link" href="/jobs">View job postings</a>
+    <a class="button-link secondary" href="/login">HR login</a>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Open positions</h2>
+    <a class="text-link" href="/jobs">See all</a>
+  </div>
+
+  <% if (!jobs || jobs.length === 0) { %>
+    <p>No active job postings right now.</p>
+  <% } else { %>
+    <div class="jobs-grid">
+      <% jobs.forEach(job => { %>
+        <article class="job-card">
+          <h3><%= job.position_title %></h3>
+          <p><strong>Department:</strong> <%= job.department_name || 'Unassigned' %></p>
+          <p><strong>Level:</strong> <%= job.position_level || '-' %></p>
+          <p><strong>Status:</strong> <%= job.is_active ? 'Open' : 'Closed' %></p>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
 </section>
 
 <%- include('partials/footer') %>

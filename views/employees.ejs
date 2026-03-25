@@ -1,19 +1,52 @@
 ﻿<%- include('partials/header') %>
 
-<h2>Employees</h2>
+<section class="card">
+  <h2>Employees</h2>
 
-<div class="card">
-  <% if (!employees.length) { %>
-    <p>No employees found.</p>
-  <% } %>
+  <form method="GET" action="/employees" class="filter-row">
+    <label for="status">Filter by status</label>
+    <select name="status" id="status">
+      <option value="">All</option>
+      <% statuses.forEach(status => { %>
+        <option value="<%= status %>" <%= selectedStatus === status ? 'selected' : '' %>><%= status %></option>
+      <% }) %>
+    </select>
+    <button type="submit">Apply</button>
+    <a class="text-link" href="/employees">Reset</a>
+  </form>
 
-  <% employees.forEach(emp => { %>
-    <div class="list-item">
-      <h3><%= emp.first_name || '' %> <%= emp.last_name || '' %></h3>
-      <p>Department: <%= emp.department_name || 'Not assigned' %></p>
-      <p>Position: <%= emp.position || '-' %></p>
-    </div>
-  <% }) %>
-</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Position</th>
+          <th>Department</th>
+          <th>Status</th>
+          <th>Hire date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (!employees.length) { %>
+          <tr>
+            <td colspan="6">No employees found.</td>
+          </tr>
+        <% } %>
+
+        <% employees.forEach(row => { %>
+          <tr>
+            <td><%= row.full_name %></td>
+            <td><%= row.position_title || '-' %></td>
+            <td><%= row.department_name || '-' %></td>
+            <td><%= row.employment_status %></td>
+            <td><%= row.hire_date %></td>
+            <td><a class="text-link" href="/employees/<%= row.employee_id %>">View</a></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <%- include('partials/footer') %>
