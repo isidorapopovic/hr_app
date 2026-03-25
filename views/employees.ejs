@@ -1,0 +1,19 @@
+﻿<%- include('partials/header') %>
+
+<h2>Employees</h2>
+
+<div class="card">
+  <% if (!employees.length) { %>
+    <p>No employees found.</p>
+  <% } %>
+
+  <% employees.forEach(emp => { %>
+    <div class="list-item">
+      <h3><%= emp.first_name || '' %> <%= emp.last_name || '' %></h3>
+      <p>Department: <%= emp.department_name || 'Not assigned' %></p>
+      <p>Position: <%= emp.position || '-' %></p>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('partials/footer') %>

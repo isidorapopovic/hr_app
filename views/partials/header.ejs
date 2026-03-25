@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HR App</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div>
+        <h1 class="brand">HR App</h1>
+        <p class="subtitle">Human resources management platform</p>
+      </div>
+
+      <nav class="nav">
+        <a href="/">Home</a>
+        <% if (user) { %>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/employees">Employees</a>
+          <a href="/departments">Departments</a>
+          <a href="/jobs">Jobs</a>
+          <a href="/applicants">Applicants</a>
+
+          <form action="/logout" method="POST" style="display:inline;">
+            <button type="submit">Logout</button>
+          </form>
+        <% } else { %>
+          <a href="/login">Login</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">

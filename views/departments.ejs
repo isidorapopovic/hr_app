@@ -1,0 +1,18 @@
+﻿<%- include('partials/header') %>
+
+<h2>Departments</h2>
+
+<div class="card">
+  <% if (!departments.length) { %>
+    <p>No departments found.</p>
+  <% } %>
+
+  <% departments.forEach(dep => { %>
+    <div class="list-item">
+      <h3><%= dep.name %></h3>
+      <p><%= dep.description || 'No description' %></p>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('partials/footer') %>

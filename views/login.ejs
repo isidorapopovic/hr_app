@@ -1,0 +1,21 @@
+﻿<%- include('partials/header') %>
+
+<section class="card small-card">
+  <h2>Login</h2>
+
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <form method="POST" action="/login" class="form-grid">
+    <label>Username</label>
+    <input type="text" name="username" required>
+
+    <label>Password</label>
+    <input type="password" name="password" required>
+
+    <button type="submit">Sign in</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,15 @@
+﻿<%- include('partials/header') %>
+
+<section class="card">
+  <% if (!applicant) { %>
+    <p>Applicant not found.</p>
+  <% } else { %>
+    <h2><%= applicant.full_name %></h2>
+    <p><strong>Email:</strong> <%= applicant.email %></p>
+    <p><strong>Phone:</strong> <%= applicant.phone || '-' %></p>
+    <p><strong>Job:</strong> <%= applicant.job_title || '-' %></p>
+    <p><strong>CV:</strong> <%= applicant.cv_link || '-' %></p>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

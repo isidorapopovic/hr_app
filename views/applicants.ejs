@@ -1,0 +1,20 @@
+﻿<%- include('partials/header') %>
+
+<h2>Applicants</h2>
+
+<div class="card">
+  <% if (!applicants.length) { %>
+    <p>No applicants found.</p>
+  <% } %>
+
+  <% applicants.forEach(applicant => { %>
+    <div class="list-item">
+      <h3><%= applicant.full_name %></h3>
+      <p>Email: <%= applicant.email %></p>
+      <p>Job: <%= applicant.job_title || 'Unknown' %></p>
+      <a class="button-link" href="/applicants/<%= applicant.id %>">View details</a>
+    </div>
+  <% }) %>
+</div>
+
+<%- include('partials/footer') %>
