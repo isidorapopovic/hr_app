@@ -1,10 +1,26 @@
-﻿const Database = require('better-sqlite3');
-const path = require('path');
+﻿const path = require('path');
+const Database = require('better-sqlite3');
 
 const dbPath = path.join(__dirname, 'hr_system.db');
-const db = new Database(dbPath);
+const sqlite = new Database(dbPath);
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('foreign_keys = ON');
 
-module.exports = db;
+function all(sql, params = []) {
+    return Promise.resolve(sqlite.prepare(sql).all(...params));
+}
+
+function get(sql, params = []) {
+    return Promise.resolve(sqlite.prepare(sql).get(...params));
+}
+
+function run(sql, params = []) {
+    return Promise.resolve(sqlite.prepare(sql).run(...params));
+}
+
+sqlite.all = all;
+sqlite.get = get;
+sqlite.run = run;
+
+module.exports = sqlite;

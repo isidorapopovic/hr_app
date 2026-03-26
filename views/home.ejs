@@ -1,0 +1,42 @@
+﻿<%- include('partials/header', { title, activePage: 'home', isLoggedIn }) %>
+
+<section class="page-head">
+  <h1>Welcome</h1>
+  <p>Current job postings are visible to everyone. HR pages require login.</p>
+</section>
+
+<section class="nav-grid">
+  <a class="nav-card" href="/jobs">
+    <h2>View job postings</h2>
+    <p>Browse open roles and public vacancies.</p>
+  </a>
+
+  <% if (!isLoggedIn) { %>
+    <a class="nav-card" href="/login">
+      <h2>HR login</h2>
+      <p>Access internal HR pages, departments, employees, and workload insights.</p>
+    </a>
+  <% } else { %>
+    <a class="nav-card" href="/dashboard">
+      <h2>Dashboard</h2>
+      <p>Open the internal HR dashboard.</p>
+    </a>
+
+    <a class="nav-card" href="/departments/overview">
+      <h2>Departments Overview</h2>
+      <p>Track departments, people assigned, project deadlines, and workload.</p>
+    </a>
+
+    <a class="nav-card" href="/organisation">
+      <h2>Organisation Chart</h2>
+      <p>See company hierarchy by manager and department.</p>
+    </a>
+
+    <a class="nav-card" href="/insights">
+      <h2>Workload Insights</h2>
+      <p>Review burnout risk, overloaded departments, and delayed projects.</p>
+    </a>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

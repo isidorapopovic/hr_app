@@ -1,0 +1,151 @@
+﻿<%- include('partials/header', { title: 'Workload Insights', activePage: 'insights' }) %>
+
+<section class="page-head">
+  <h1>Workload Insights</h1>
+  <p>Operational recommendations for employees, departments, and projects.</p>
+</section>
+
+<section class="stats-grid">
+  <div class="stat-card">
+    <span class="stat-label">Total Employees</span>
+    <div class="stat-value"><%= summary.totalEmployees %></div>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">High Risk Employees</span>
+    <div class="stat-value"><%= summary.highRiskEmployees %></div>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Overloaded Departments</span>
+    <div class="stat-value"><%= summary.overloadedDepartments %></div>
+  </div>
+
+  <div class="stat-card">
+    <span class="stat-label">Delayed / At Risk Projects</span>
+    <div class="stat-value"><%= summary.delayedProjects %></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Recommendations</h2>
+
+  <% if (!recommendations || recommendations.length === 0) { %>
+    <div class="empty-state">No recommendations at the moment.</div>
+  <% } else { %>
+    <div class="recommendation-list">
+      <% recommendations.forEach((item) => { %>
+        <div class="recommendation-card <%= item.severity.toLowerCase() %>">
+          <div class="recommendation-meta">
+            <span class="badge"><%= item.severity %></span>
+            <span class="type-label"><%= item.type %></span>
+          </div>
+          <h3><%= item.title %></h3>
+          <p><%= item.message %></p>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<section class="panel">
+  <h2>Employee Risk Overview</h2>
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Workload</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% employees.forEach((emp) => { %>
+            <tr>
+              <td><%= emp.full_name %></td>
+              <td><%= emp.department_name || '-' %></td>
+              <td><%= emp.workload_percent || 0 %>%</td>
+              <td>
+                <span class="pill <%= emp.burnout_risk.toLowerCase() %>">
+                  <%= emp.burnout_risk %>
+                </span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Department Status</h2>
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th>Employees</th>
+            <th>Average Workload</th>
+            <th>High Risk Employees</th>
+            <th>Delayed Projects</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% departments.forEach((dep) => { %>
+            <tr>
+              <td><%= dep.department_name %></td>
+              <td><%= dep.employee_count %></td>
+              <td><%= dep.avg_workload %>%</td>
+              <td><%= dep.high_risk_count %></td>
+              <td><%= dep.delayed_projects %></td>
+              <td>
+                <span class="pill <%= dep.status.toLowerCase().replace(/\s+/g, '-') %>">
+                  <%= dep.status %>
+                </span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Project Delivery Status</h2>
+  <div class="table-card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Department</th>
+            <th>Deadline</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% projects.forEach((project) => { %>
+            <tr>
+              <td><%= project.project_name %></td>
+              <td><%= project.department_name || '-' %></td>
+              <td><%= project.deadline || '-' %></td>
+              <td>
+                <span class="pill <%= project.delay_status.toLowerCase().replace(/\s+/g, '-') %>">
+                  <%= project.delay_status %>
+                </span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

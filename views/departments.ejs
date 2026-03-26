@@ -1,112 +1,91 @@
-﻿<%- include('partials/header') %>
+﻿<%- include('partials/header', { title: 'Departments Overview', activePage: 'departments-overview' }) %>
 
-<section class="hero">
-  <h2>Departments overview</h2>
-  <p>Review departments, project timelines, and how many employees are assigned to each project.</p>
+<section class="page-head">
+  <a href="/" class="back-link">Back to Home</a>
+  <h1>Departments Overview</h1>
+  <p>Track departments, positions, assigned people, and workload.</p>
 </section>
 
-<section class="grid-3">
-  <div class="card stat-card">
-    <h3>Total departments</h3>
-    <p><%= departments.length %></p>
-  </div>
+<% if (!departments || departments.length === 0) { %>
+  <div class="empty-state">No departments found.</div>
+<% } else { %>
+  <section class="department-list">
+    <% departments.forEach((department) => { %>
+      <article class="department-card">
+        <h2>
+          <a href="/departments/<%= department.department_id %>">
+            <%= department.department_name %>
+          </a>
+        </h2>
 
-  <div class="card stat-card">
-    <h3>Total projects</h3>
-    <p><%= departments.reduce((sum, d) => sum + Number(d.projects_count || 0), 0) %></p>
-  </div>
+        <div class="department-summary">
+          <div class="department-metric">
+            <span class="label">Nearest deadline</span>
+            <span class="value"><%= department.nearest_deadline || '-' %></span>
+          </div>
 
-  <div class="card stat-card">
-    <h3>Total assigned people</h3>
-    <p><%= departments.reduce((sum, d) => sum + Number(d.employees_count || 0), 0) %></p>
-  </div>
-</section>
+          <div class="department-metric">
+            <span class="label">Open positions</span>
+            <span class="value"><%= department.open_positions || 0 %></span>
+          </div>
 
-<section class="card">
-  <div class="section-head">
-    <div>
-      <h3>Department summary</h3>
-      <p>Overview of departments, total projects, and assigned staff.</p>
-    </div>
-  </div>
+          <div class="department-metric">
+            <span class="label">Positions</span>
+            <span class="value"><%= department.project_count || 0 %></span>
+          </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Department</th>
-          <th>Created</th>
-          <th>Projects</th>
-          <th>Assigned people</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (!departments.length) { %>
-          <tr>
-            <td colspan="4">No departments found.</td>
-          </tr>
-        <% } %>
+          <div class="department-metric">
+            <span class="label">People assigned</span>
+            <span class="value"><%= department.people_assigned || 0 %></span>
+          </div>
 
-        <% departments.forEach(department => { %>
-          <tr>
-            <td><strong><%= department.department_name %></strong></td>
-            <td><%= department.created_at %></td>
-            <td><%= department.projects_count %></td>
-            <td><%= department.employees_count %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-</section>
+          <div class="department-metric">
+            <span class="label">Average workload</span>
+            <span class="value"><%= department.average_workload || 0 %>%</span>
+          </div>
+        </div>
 
-<% departments.forEach(department => { %>
-  <section class="card">
-    <div class="section-head">
-      <div>
-        <h3><%= department.department_name %></h3>
-        <p>
-          <%= department.projects_count %> project(s),
-          <%= department.employees_count %> assigned employee(s)
-        </p>
-      </div>
-    </div>
+        <div class="department-link-row">
+          <a href="/departments/<%= department.department_id %>">Open department</a>
+        </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Started</th>
-            <th>Ended</th>
-            <th>Deadline</th>
-            <th>Status</th>
-            <th>People working on it</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% const projects = groupedProjects[department.department_id] || []; %>
-
-          <% if (!projects.length) { %>
-            <tr>
-              <td colspan="6">No projects in this department yet.</td>
-            </tr>
-          <% } %>
-
-          <% projects.forEach(project => { %>
-            <tr>
-              <td><strong><%= project.project_name %></strong></td>
-              <td><%= project.start_date || '-' %></td>
-              <td><%= project.end_date || '-' %></td>
-              <td><%= project.deadline || '-' %></td>
-              <td><%= project.status || 'Active' %></td>
-              <td><%= project.assigned_people %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Position</th>
+                  <th>Status</th>
+                  <th>Applicants</th>
+                  <th>Deadline</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (!department.projects || department.projects.length === 0) { %>
+                  <tr>
+                    <td colspan="4">No positions assigned.</td>
+                  </tr>
+                <% } else { %>
+                  <% department.projects.forEach((project) => { %>
+                    <tr>
+                      <td><%= project.project_name %></td>
+                      <td>
+                        <span class="pill <%= (project.status || '').toLowerCase() === 'open' ? 'at-risk' : 'active-ok' %>">
+                          <%= project.status %>
+                        </span>
+                      </td>
+                      <td><%= project.assigned_people || 0 %></td>
+                      <td><%= project.deadline || '-' %></td>
+                    </tr>
+                  <% }) %>
+                <% } %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+    <% }) %>
   </section>
-<% }) %>
+<% } %>
 
 <%- include('partials/footer') %>

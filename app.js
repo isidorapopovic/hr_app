@@ -10,6 +10,11 @@ const applicantsRoutes = require('./routes/applicants');
 const employeesRoutes = require('./routes/employees');
 const workloadRoutes = require('./routes/workload');
 
+
+// add these only if you created these files
+const organisationRoutes = require('./routes/organisation');
+const insightsRoutes = require('./routes/insights');
+
 const app = express();
 const PORT = 3000;
 
@@ -28,11 +33,15 @@ app.use(
     })
 );
 
+// make login/user data available in all EJS views
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
+    res.locals.currentUser = req.session.user || null;
+    res.locals.isLoggedIn = !!req.session.user;
     next();
 });
 
+// routes
 app.use('/', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/departments', departmentsRoutes);
@@ -41,11 +50,18 @@ app.use('/applicants', applicantsRoutes);
 app.use('/employees', employeesRoutes);
 app.use('/workload', workloadRoutes);
 
+
+// new routes
+app.use('/organisation', organisationRoutes);
+app.use('/insights', insightsRoutes);
+
+// 404 page
 app.use((req, res) => {
-    res.status(404).send('Page not found');
+    res.status(404).render('404', {
+        title: 'Page not found'
+    });
 });
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
-

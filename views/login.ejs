@@ -1,21 +1,44 @@
-﻿<%- include('partials/header') %>
+﻿<%- include('partials/header', { title: 'Login', activePage: 'login' }) %>
 
-<section class="card small-card">
-  <h2>Login</h2>
+<section class="auth-page">
+  <div class="auth-card">
+    <div class="auth-head">
+      <h1>Login</h1>
+      <p>Sign in to access the internal HR dashboard.</p>
+    </div>
 
-  <% if (error) { %>
-    <p class="error"><%= error %></p>
-  <% } %>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert-error">
+        <%= error %>
+      </div>
+    <% } %>
 
-  <form method="POST" action="/login" class="form-grid">
-    <label>Username</label>
-    <input type="text" name="username" required>
+    <form method="POST" action="/login" class="auth-form">
+      <div class="form-row">
+        <label for="username">Username</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          required
+          autocomplete="username"
+        >
+      </div>
 
-    <label>Password</label>
-    <input type="password" name="password" required>
+      <div class="form-row">
+        <label for="password">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          autocomplete="current-password"
+        >
+      </div>
 
-    <button type="submit">Sign in</button>
-  </form>
+      <button type="submit" class="primary-btn">Sign in</button>
+    </form>
+  </div>
 </section>
 
 <%- include('partials/footer') %>

@@ -1,0 +1,15 @@
+﻿<li>
+  <div class="org-card">
+    <div class="org-name"><%= node.full_name %></div>
+    <div class="org-role"><%= node.job_title || 'Employee' %></div>
+    <div class="org-department"><%= node.department_name || 'No department' %></div>
+  </div>
+
+  <% if (node.children && node.children.length > 0) { %>
+    <ul>
+      <% node.children.forEach((child) => { %>
+        <%- include('partials/org-node', { node: child }) %>
+      <% }) %>
+    </ul>
+  <% } %>
+</li>

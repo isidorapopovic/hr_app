@@ -2,36 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>HR App</title>
-  <link rel="stylesheet" href="/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'HR App' %></title>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <div>
-        <h1 class="brand">HR App</h1>
-        <p class="subtitle">Recruitment and HR tracking</p>
+  <div class="page-shell">
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="brand-wrap">
+          <h1 class="brand">HR App</h1>
+          <p class="subtitle">Recruitment and HR tracking</p>
+        </div>
+
+        <nav class="nav">
+          <a href="/" class="<%= typeof activePage !== 'undefined' && activePage === 'home' ? 'active' : '' %>">Home</a>
+          <a href="/jobs" class="<%= typeof activePage !== 'undefined' && activePage === 'jobs' ? 'active' : '' %>">Job Postings</a>
+
+          <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+            <a href="/dashboard" class="<%= typeof activePage !== 'undefined' && activePage === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+            <a href="/departments" class="<%= typeof activePage !== 'undefined' && activePage === 'departments' ? 'active' : '' %>">Departments</a>
+            <a href="/departments/overview" class="<%= typeof activePage !== 'undefined' && activePage === 'departments-overview' ? 'active' : '' %>">Departments Overview</a>
+            <a href="/applicants" class="<%= typeof activePage !== 'undefined' && activePage === 'applicants' ? 'active' : '' %>">Applicants</a>
+            <a href="/employees" class="<%= typeof activePage !== 'undefined' && activePage === 'employees' ? 'active' : '' %>">Employees</a>
+            <a href="/workload" class="<%= typeof activePage !== 'undefined' && activePage === 'workload' ? 'active' : '' %>">Workload</a>
+            <a href="/organisation" class="<%= typeof activePage !== 'undefined' && activePage === 'organisation' ? 'active' : '' %>">Organisation</a>
+            <a href="/insights" class="<%= typeof activePage !== 'undefined' && activePage === 'insights' ? 'active' : '' %>">Insights</a>
+
+            <form class="logout-form" method="POST" action="/logout">
+              <button class="logout-btn" type="submit">Logout</button>
+            </form>
+          <% } else { %>
+            <a href="/login" class="<%= typeof activePage !== 'undefined' && activePage === 'login' ? 'active' : '' %>">HR Login</a>
+          <% } %>
+        </nav>
       </div>
+    </header>
 
-      <nav class="nav">
-        <a href="/">Home</a>
-        <a href="/jobs">Job Postings</a>
-
-        <% if (user) { %>
-          <a href="/dashboard">Dashboard</a>
-          <a href="/departments">Departments</a>
-          <a href="/departments/overview">Departments Overview</a>
-          <a href="/applicants">Applicants</a>
-          <a href="/employees">Employees</a>
-          <a href="/workload">Workload</a>
-          <form action="/logout" method="POST" style="display:inline;">
-            <button type="submit">Logout</button>
-          </form>
-        <% } else { %>
-          <a href="/login">HR Login</a>
-        <% } %>
-      </nav>
-    </div>
-  </header>
-
-  <main class="container">
+    <main class="main-content">
+      <div class="container">
