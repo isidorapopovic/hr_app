@@ -1,0 +1,92 @@
+﻿<%- include('partials/header') %>
+
+<div class="container">
+  <section class="page-head">
+    <a href="/" class="back-link">Back to Home</a>
+    <h1>Departments Overview</h1>
+    <p class="page-subtitle">Track departments, projects, assigned people, and workload.</p>
+  </section>
+
+  <section class="departments-list">
+    <% departments.forEach(department => { %>
+      <article class="department-card">
+        <div class="department-card__top">
+          <div>
+            <h2>
+              <a href="/departments/<%= department.department_id %>" class="department-title-link">
+                <%= department.department_name %>
+              </a>
+            </h2>
+          </div>
+
+          <div class="deadline-badge">
+            Nearest deadline:
+            <%= department.nearest_deadline || 'No deadline' %>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-label">Open Positions</span>
+            <strong class="stat-value"><%= department.open_positions %></strong>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-label">Projects</span>
+            <strong class="stat-value"><%= department.projects_count %></strong>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-label">People Assigned</span>
+            <strong class="stat-value"><%= department.people_assigned %></strong>
+          </div>
+
+          <div class="stat-box">
+            <span class="stat-label">Average Workload</span>
+            <strong class="stat-value"><%= department.avg_workload %>%</strong>
+          </div>
+        </div>
+
+        <div class="projects-block">
+          <div class="projects-header">
+            <h3>Projects</h3>
+            <a href="/departments/<%= department.department_id %>" class="small-link">Open department</a>
+          </div>
+
+          <div class="table-wrap">
+            <table class="overview-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Status</th>
+                  <th>Assigned People</th>
+                  <th>Deadline</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% const departmentProjects = projectsByDepartment[department.department_id] || []; %>
+
+                <% if (!departmentProjects.length) { %>
+                  <tr>
+                    <td colspan="4">No projects yet.</td>
+                  </tr>
+                <% } %>
+
+                <% departmentProjects.forEach(project => { %>
+                  <tr>
+                    <td><%= project.project_name %></td>
+                    <td><%= project.status || 'Active' %></td>
+                    <td><%= project.assigned_people %></td>
+                    <td><%= project.deadline || '-' %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </article>
+    <% }) %>
+  </section>
+</div>
+
+<%- include('partials/footer') %>

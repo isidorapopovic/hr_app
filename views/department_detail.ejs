@@ -1,0 +1,107 @@
+﻿<%- include('partials/header') %>
+
+<div class="container">
+  <section class="page-head">
+    <a href="/departments/overview" class="back-link">Back to Departments Overview</a>
+    <h1><%= department.department_name %></h1>
+    <p class="page-subtitle">Department details, project timeline, and employees.</p>
+  </section>
+
+  <section class="stats-grid detail-stats">
+    <div class="stat-box">
+      <span class="stat-label">Open Positions</span>
+      <strong class="stat-value"><%= department.open_positions %></strong>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">Projects</span>
+      <strong class="stat-value"><%= department.projects_count %></strong>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">People Assigned</span>
+      <strong class="stat-value"><%= department.people_assigned %></strong>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">Average Workload</span>
+      <strong class="stat-value"><%= department.avg_workload %>%</strong>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="projects-header">
+      <h2>Projects</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table class="overview-table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Started</th>
+            <th>Ended</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Assigned People</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!projects.length) { %>
+            <tr>
+              <td colspan="6">No projects found.</td>
+            </tr>
+          <% } %>
+
+          <% projects.forEach(project => { %>
+            <tr>
+              <td><%= project.project_name %></td>
+              <td><%= project.start_date || '-' %></td>
+              <td><%= project.end_date || '-' %></td>
+              <td><%= project.deadline || '-' %></td>
+              <td><%= project.status || 'Active' %></td>
+              <td><%= project.assigned_people %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="projects-header">
+      <h2>Employees</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table class="overview-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Workload</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (!employees.length) { %>
+            <tr>
+              <td colspan="4">No employees found.</td>
+            </tr>
+          <% } %>
+
+          <% employees.forEach(employee => { %>
+            <tr>
+              <td><%= employee.full_name %></td>
+              <td><%= employee.email || '-' %></td>
+              <td><%= employee.workload_percent || 0 %>%</td>
+              <td><%= employee.employment_status %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<%- include('partials/footer') %>
