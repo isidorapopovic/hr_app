@@ -9,11 +9,9 @@ const jobsRoutes = require('./routes/jobs');
 const applicantsRoutes = require('./routes/applicants');
 const employeesRoutes = require('./routes/employees');
 const workloadRoutes = require('./routes/workload');
-
-
-// add these only if you created these files
 const organisationRoutes = require('./routes/organisation');
 const insightsRoutes = require('./routes/insights');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = 3000;
@@ -54,6 +52,7 @@ app.use('/workload', workloadRoutes);
 // new routes
 app.use('/organisation', organisationRoutes);
 app.use('/insights', insightsRoutes);
+app.use('/admin', adminRoutes);
 
 // 404 page
 app.use((req, res) => {

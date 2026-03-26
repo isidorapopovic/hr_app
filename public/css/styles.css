@@ -395,3 +395,48 @@ tr:hover td {
         grid-template-columns: 1fr;
     }
 }
+
+.form-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .form-group label {
+        font-weight: 600;
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+.form-actions {
+    margin-top: 8px;
+}
+
+.alert {
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+    .alert.success {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+    }
+
+    .alert.error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }

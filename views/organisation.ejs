@@ -1,81 +1,36 @@
-﻿const express = require('express');
-const router = express.Router();
-const db = require('../db');
-const requireLogin = require('../middleware/auth');
-const {
-    enrichEmployees,
-    enrichProjects,
-    buildDepartmentInsights,
-    generateRecommendations
-} = require('../services/insightsService');
+﻿<%- include('partials/header', { title: 'Organisation Chart', activePage: 'organisation', isLoggedIn: !!user }) %>
 
-router.get('/', requireLogin, (req, res) => {
-    try {
-        const departments = db.prepare(`
-            SELECT
-                department_id,
-                department_name
-            FROM departments
-            ORDER BY department_name
-        `).all();
+<section class="page-head">
+  <h1>Organisation Chart</h1>
+  <p>Overview of active employees and reporting structure.</p>
+</section>
 
-        const employeesRaw = db.prepare(`
-            SELECT
-                e.employee_id,
-                e.full_name,
-                e.job_title,
-                e.department_id,
-                e.workload_percent,
-                e.employment_status,
-                d.department_name
-            FROM employees e
-            LEFT JOIN departments d
-                ON e.department_id = d.department_id
-            WHERE e.employment_status = 'active'
-            ORDER BY e.full_name
-        `).all();
+<section class="card">
+  <% if (!tree || tree.length === 0) { %>
+    <p>No organisation data available.</p>
+  <% } else { %>
+    <div class="org-tree">
+      <% tree.forEach((employee) => { %>
+        <div class="org-node">
+          <h3><%= employee.full_name %></h3>
+          <p><strong>Role:</strong> <%= employee.job_title || '-' %></p>
+          <p><strong>Department:</strong> <%= employee.department_name || '-' %></p>
 
-        const projectsRaw = db.prepare(`
-            SELECT
-                p.project_id,
-                p.project_name,
-                p.department_id,
-                p.status,
-                p.deadline,
-                d.department_name
-            FROM projects p
-            LEFT JOIN departments d
-                ON p.department_id = d.department_id
-            ORDER BY p.deadline IS NULL, p.deadline, p.project_name
-        `).all();
+          <% if (employee.children && employee.children.length > 0) { %>
+            <div class="org-children">
+              <% employee.children.forEach((child) => { %>
+                <div class="org-node child-node">
+                  <h4><%= child.full_name %></h4>
+                  <p><strong>Role:</strong> <%= child.job_title || '-' %></p>
+                  <p><strong>Department:</strong> <%= child.department_name || '-' %></p>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
 
-        const employees = enrichEmployees(employeesRaw);
-        const projects = enrichProjects(projectsRaw);
-        const departmentInsights = buildDepartmentInsights(departments, employees, projects);
-        const recommendations = generateRecommendations(employees, departmentInsights, projects);
-
-        const summary = {
-            totalEmployees: employees.length,
-            highRiskEmployees: employees.filter((e) => e.burnout_risk === 'High').length,
-            overloadedDepartments: departmentInsights.filter((d) => d.status === 'Overloaded').length,
-            delayedProjects: projects.filter(
-                (p) => p.delay_status === 'Delayed' || p.delay_status === 'At Risk'
-            ).length
-        };
-
-        res.render('insights', {
-            title: 'Workload Insights',
-            activePage: 'insights',
-            summary,
-            employees,
-            departments: departmentInsights,
-            projects,
-            recommendations
-        });
-    } catch (error) {
-        console.error('Insights route error:', error);
-        res.status(500).send('Failed to load insights page.');
-    }
-});
-
-module.exports = router;
+<%- include('partials/footer') %>

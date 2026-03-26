@@ -28,6 +28,7 @@
             <a href="/workload" class="<%= typeof activePage !== 'undefined' && activePage === 'workload' ? 'active' : '' %>">Workload</a>
             <a href="/organisation" class="<%= typeof activePage !== 'undefined' && activePage === 'organisation' ? 'active' : '' %>">Organisation</a>
             <a href="/insights" class="<%= typeof activePage !== 'undefined' && activePage === 'insights' ? 'active' : '' %>">Insights</a>
+            <a href="/admin/upload-csv" class="<%= typeof activePage !== 'undefined' && activePage === 'admin-upload' ? 'active' : '' %>">Admin Upload</a>
 
             <form class="logout-form" method="POST" action="/logout">
               <button class="logout-btn" type="submit">Logout</button>

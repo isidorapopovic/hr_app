@@ -23,6 +23,7 @@ CREATE TABLE positions (
   position_level TEXT,
   is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (position_title, department_id),
   FOREIGN KEY (department_id) REFERENCES departments(department_id)
 );
 
@@ -55,7 +56,7 @@ CREATE TABLE employees (
   email TEXT,
   department_id INTEGER,
   position_id INTEGER,
-  hire_date TEXT,
+  hire_date TEXT NOT NULL,
   employment_status TEXT NOT NULL DEFAULT 'active' CHECK (
     employment_status IN (
       'active',
@@ -66,7 +67,7 @@ CREATE TABLE employees (
     )
   ),
   end_date TEXT,
-  workload_percent INTEGER DEFAULT 0,
+  workload_percent INTEGER NOT NULL DEFAULT 0 CHECK (workload_percent >= 0 AND workload_percent <= 100),
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (applicant_id) REFERENCES applicants(applicant_id),
   FOREIGN KEY (department_id) REFERENCES departments(department_id),
@@ -90,6 +91,7 @@ CREATE TABLE employee_projects (
   employee_id INTEGER NOT NULL,
   project_id INTEGER NOT NULL,
   assigned_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (employee_id, project_id),
   FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
   FOREIGN KEY (project_id) REFERENCES projects(project_id)
 );
