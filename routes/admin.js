@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
@@ -151,17 +151,8 @@ function validateHeaders(uploadType, records) {
     };
 }
 
-function importDepartments(records) {
-    const insertStmt = db.prepare(`
-    INSERT INTO departments (department_name)
-    VALUES (?)
-  `);
-
-    const results = {
-        successCount: 0,
-        failureCount: 0,
-        rowErrors: []
-    };
+async function importDepartments(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
     for (let i = 0; i < records.length; i++) {
         const rowNumber = i + 2;
@@ -169,42 +160,25 @@ function importDepartments(records) {
 
         try {
             const departmentName = safeValue(row.department_name);
+            if (!departmentName) throw new Error('department_name is required.');
 
-            if (!departmentName) {
-                throw new Error('department_name is required.');
-            }
+            await db.run(
+                'INSERT INTO departments (department_name) VALUES ($1)',
+                [departmentName]
+            );
 
-            insertStmt.run(departmentName);
             results.successCount++;
         } catch (err) {
             results.failureCount++;
-            results.rowErrors.push({
-                rowNumber,
-                error: err.message
-            });
+            results.rowErrors.push({ rowNumber, error: err.message });
         }
     }
 
     return results;
 }
 
-function importPositions(records) {
-    const findDepartmentStmt = db.prepare(`
-    SELECT department_id
-    FROM departments
-    WHERE department_name = ?
-  `);
-
-    const insertStmt = db.prepare(`
-    INSERT INTO positions (position_title, department_id, position_level, is_active)
-    VALUES (?, ?, ?, ?)
-  `);
-
-    const results = {
-        successCount: 0,
-        failureCount: 0,
-        rowErrors: []
-    };
+async function importPositions(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
     for (let i = 0; i < records.length; i++) {
         const rowNumber = i + 2;
@@ -219,60 +193,33 @@ function importPositions(records) {
             if (!positionTitle) throw new Error('position_title is required.');
             if (!departmentName) throw new Error('department_name is required.');
             if (isActiveRaw === null) throw new Error('is_active is required.');
-            if (!['0', '1'].includes(isActiveRaw)) {
-                throw new Error('is_active must be 0 or 1.');
-            }
+            if (!['0', '1'].includes(isActiveRaw)) throw new Error('is_active must be 0 or 1.');
 
-            const department = findDepartmentStmt.get(departmentName);
-            if (!department) {
-                throw new Error(`Department not found: ${departmentName}`);
-            }
+            const department = await db.get(
+                'SELECT department_id FROM departments WHERE department_name = $1',
+                [departmentName]
+            );
 
-            insertStmt.run(
-                positionTitle,
-                department.department_id,
-                positionLevel,
-                Number(isActiveRaw)
+            if (!department) throw new Error(`Department not found: ${departmentName}`);
+
+            await db.run(
+                `INSERT INTO positions (position_title, department_id, position_level, is_active)
+         VALUES ($1, $2, $3, $4)`,
+                [positionTitle, department.department_id, positionLevel, Number(isActiveRaw)]
             );
 
             results.successCount++;
         } catch (err) {
             results.failureCount++;
-            results.rowErrors.push({
-                rowNumber,
-                error: err.message
-            });
+            results.rowErrors.push({ rowNumber, error: err.message });
         }
     }
 
     return results;
 }
 
-function importApplicants(records) {
-    const findPositionStmt = db.prepare(`
-    SELECT position_id
-    FROM positions
-    WHERE position_title = ?
-  `);
-
-    const insertStmt = db.prepare(`
-    INSERT INTO applicants (
-      full_name,
-      years_experience,
-      current_or_last_position,
-      position_id,
-      application_status,
-      applied_at,
-      notes
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-
-    const results = {
-        successCount: 0,
-        failureCount: 0,
-        rowErrors: []
-    };
+async function importApplicants(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
     for (let i = 0; i < records.length; i++) {
         const rowNumber = i + 2;
@@ -301,67 +248,47 @@ function importApplicants(records) {
 
             let positionId = null;
             if (positionTitle) {
-                const position = findPositionStmt.get(positionTitle);
-                if (!position) {
-                    throw new Error(`Position not found: ${positionTitle}`);
-                }
+                const position = await db.get(
+                    'SELECT position_id FROM positions WHERE position_title = $1',
+                    [positionTitle]
+                );
+                if (!position) throw new Error(`Position not found: ${positionTitle}`);
                 positionId = position.position_id;
             }
 
-            insertStmt.run(
-                fullName,
-                yearsExperience,
-                currentOrLastPosition,
-                positionId,
-                applicationStatus,
-                appliedAt || new Date().toISOString().slice(0, 19).replace('T', ' '),
-                notes
+            await db.run(
+                `INSERT INTO applicants (
+          full_name,
+          years_experience,
+          current_or_last_position,
+          position_id,
+          application_status,
+          applied_at,
+          notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [
+                    fullName,
+                    yearsExperience,
+                    currentOrLastPosition,
+                    positionId,
+                    applicationStatus,
+                    appliedAt || new Date().toISOString(),
+                    notes
+                ]
             );
 
             results.successCount++;
         } catch (err) {
             results.failureCount++;
-            results.rowErrors.push({
-                rowNumber,
-                error: err.message
-            });
+            results.rowErrors.push({ rowNumber, error: err.message });
         }
     }
 
     return results;
 }
 
-function importEmployees(records) {
-    const findApplicantStmt = db.prepare(`
-    SELECT applicant_id
-    FROM applicants
-    WHERE full_name = ?
-  `);
-
-    const findPositionStmt = db.prepare(`
-    SELECT position_id, department_id
-    FROM positions
-    WHERE position_title = ?
-  `);
-
-    const insertStmt = db.prepare(`
-    INSERT INTO employees (
-      applicant_id,
-      full_name,
-      department_id,
-      position_id,
-      hire_date,
-      employment_status,
-      end_date
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `);
-
-    const results = {
-        successCount: 0,
-        failureCount: 0,
-        rowErrors: []
-    };
+async function importEmployees(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
     for (let i = 0; i < records.length; i++) {
         const rowNumber = i + 2;
@@ -383,67 +310,55 @@ function importEmployees(records) {
                 throw new Error(`Invalid employment_status: ${employmentStatus}`);
             }
 
-            const position = findPositionStmt.get(positionTitle);
-            if (!position) {
-                throw new Error(`Position not found: ${positionTitle}`);
-            }
+            const position = await db.get(
+                'SELECT position_id, department_id FROM positions WHERE position_title = $1',
+                [positionTitle]
+            );
+            if (!position) throw new Error(`Position not found: ${positionTitle}`);
 
             let applicantId = null;
             if (applicantFullName) {
-                const applicant = findApplicantStmt.get(applicantFullName);
-                if (!applicant) {
-                    throw new Error(`Applicant not found: ${applicantFullName}`);
-                }
+                const applicant = await db.get(
+                    'SELECT applicant_id FROM applicants WHERE full_name = $1',
+                    [applicantFullName]
+                );
+                if (!applicant) throw new Error(`Applicant not found: ${applicantFullName}`);
                 applicantId = applicant.applicant_id;
             }
 
-            insertStmt.run(
-                applicantId,
-                fullName,
-                position.department_id,
-                position.position_id,
-                hireDate,
-                employmentStatus,
-                endDate
+            await db.run(
+                `INSERT INTO employees (
+          applicant_id,
+          full_name,
+          department_id,
+          position_id,
+          hire_date,
+          employment_status,
+          end_date
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                [
+                    applicantId,
+                    fullName,
+                    position.department_id,
+                    position.position_id,
+                    hireDate,
+                    employmentStatus,
+                    endDate
+                ]
             );
 
             results.successCount++;
         } catch (err) {
             results.failureCount++;
-            results.rowErrors.push({
-                rowNumber,
-                error: err.message
-            });
+            results.rowErrors.push({ rowNumber, error: err.message });
         }
     }
 
     return results;
 }
 
-function importProjects(records) {
-    const findDepartmentStmt = db.prepare(`
-    SELECT department_id
-    FROM departments
-    WHERE department_name = ?
-  `);
-
-    const insertStmt = db.prepare(`
-    INSERT INTO projects (
-      project_name,
-      department_id,
-      start_date,
-      end_date,
-      deadline,
-      status
-    )
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-
-    const results = {
-        successCount: 0,
-        failureCount: 0,
-        rowErrors: []
-    };
+async function importProjects(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
     for (let i = 0; i < records.length; i++) {
         const rowNumber = i + 2;
@@ -460,81 +375,36 @@ function importProjects(records) {
             if (!projectName) throw new Error('project_name is required.');
             if (!departmentName) throw new Error('department_name is required.');
 
-            const department = findDepartmentStmt.get(departmentName);
-            if (!department) {
-                throw new Error(`Department not found: ${departmentName}`);
-            }
+            const department = await db.get(
+                'SELECT department_id FROM departments WHERE department_name = $1',
+                [departmentName]
+            );
+            if (!department) throw new Error(`Department not found: ${departmentName}`);
 
-            insertStmt.run(
-                projectName,
-                department.department_id,
-                startDate,
-                endDate,
-                deadline,
-                status
+            await db.run(
+                `INSERT INTO projects (
+          project_name,
+          department_id,
+          start_date,
+          end_date,
+          deadline,
+          status
+        ) VALUES ($1, $2, $3, $4, $5, $6)`,
+                [projectName, department.department_id, startDate, endDate, deadline, status]
             );
 
             results.successCount++;
         } catch (err) {
             results.failureCount++;
-            results.rowErrors.push({
-                rowNumber,
-                error: err.message
-            });
+            results.rowErrors.push({ rowNumber, error: err.message });
         }
     }
 
     return results;
 }
 
-function importActions(records) {
-    const findApplicantStmt = db.prepare(`
-    SELECT applicant_id
-    FROM applicants
-    WHERE full_name = ?
-  `);
-
-    const findEmployeeStmt = db.prepare(`
-    SELECT employee_id
-    FROM employees
-    WHERE full_name = ?
-  `);
-
-    const findPositionStmt = db.prepare(`
-    SELECT position_id
-    FROM positions
-    WHERE position_title = ?
-  `);
-
-    const findDepartmentStmt = db.prepare(`
-    SELECT department_id
-    FROM departments
-    WHERE department_name = ?
-  `);
-
-    const insertStmt = db.prepare(`
-    INSERT INTO actions (
-      applicant_id,
-      employee_id,
-      action_type,
-      old_status,
-      new_status,
-      old_position_id,
-      new_position_id,
-      old_department_id,
-      new_department_id,
-      action_date,
-      performed_by,
-      notes
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-    const results = {
-        successCount: 0,
-        failureCount: 0,
-        rowErrors: []
-    };
+async function importActions(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
     for (let i = 0; i < records.length; i++) {
         const rowNumber = i + 2;
@@ -550,7 +420,7 @@ function importActions(records) {
             const newPositionTitle = safeValue(row.new_position_title);
             const oldDepartmentName = safeValue(row.old_department_name);
             const newDepartmentName = safeValue(row.new_department_name);
-            const actionDate = safeValue(row.action_date) || new Date().toISOString().slice(0, 19).replace('T', ' ');
+            const actionDate = safeValue(row.action_date) || new Date().toISOString();
             const performedBy = safeValue(row.performed_by);
             const notes = safeValue(row.notes);
 
@@ -567,13 +437,19 @@ function importActions(records) {
             let newDepartmentId = null;
 
             if (applicantFullName) {
-                const applicant = findApplicantStmt.get(applicantFullName);
+                const applicant = await db.get(
+                    'SELECT applicant_id FROM applicants WHERE full_name = $1',
+                    [applicantFullName]
+                );
                 if (!applicant) throw new Error(`Applicant not found: ${applicantFullName}`);
                 applicantId = applicant.applicant_id;
             }
 
             if (employeeFullName) {
-                const employee = findEmployeeStmt.get(employeeFullName);
+                const employee = await db.get(
+                    'SELECT employee_id FROM employees WHERE full_name = $1',
+                    [employeeFullName]
+                );
                 if (!employee) throw new Error(`Employee not found: ${employeeFullName}`);
                 employeeId = employee.employee_id;
             }
@@ -583,58 +459,83 @@ function importActions(records) {
             }
 
             if (oldPositionTitle) {
-                const position = findPositionStmt.get(oldPositionTitle);
+                const position = await db.get(
+                    'SELECT position_id FROM positions WHERE position_title = $1',
+                    [oldPositionTitle]
+                );
                 if (!position) throw new Error(`Old position not found: ${oldPositionTitle}`);
                 oldPositionId = position.position_id;
             }
 
             if (newPositionTitle) {
-                const position = findPositionStmt.get(newPositionTitle);
+                const position = await db.get(
+                    'SELECT position_id FROM positions WHERE position_title = $1',
+                    [newPositionTitle]
+                );
                 if (!position) throw new Error(`New position not found: ${newPositionTitle}`);
                 newPositionId = position.position_id;
             }
 
             if (oldDepartmentName) {
-                const department = findDepartmentStmt.get(oldDepartmentName);
+                const department = await db.get(
+                    'SELECT department_id FROM departments WHERE department_name = $1',
+                    [oldDepartmentName]
+                );
                 if (!department) throw new Error(`Old department not found: ${oldDepartmentName}`);
                 oldDepartmentId = department.department_id;
             }
 
             if (newDepartmentName) {
-                const department = findDepartmentStmt.get(newDepartmentName);
+                const department = await db.get(
+                    'SELECT department_id FROM departments WHERE department_name = $1',
+                    [newDepartmentName]
+                );
                 if (!department) throw new Error(`New department not found: ${newDepartmentName}`);
                 newDepartmentId = department.department_id;
             }
 
-            insertStmt.run(
-                applicantId,
-                employeeId,
-                actionType,
-                oldStatus,
-                newStatus,
-                oldPositionId,
-                newPositionId,
-                oldDepartmentId,
-                newDepartmentId,
-                actionDate,
-                performedBy,
-                notes
+            await db.run(
+                `INSERT INTO actions (
+          applicant_id,
+          employee_id,
+          action_type,
+          old_status,
+          new_status,
+          old_position_id,
+          new_position_id,
+          old_department_id,
+          new_department_id,
+          action_date,
+          performed_by,
+          notes
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                [
+                    applicantId,
+                    employeeId,
+                    actionType,
+                    oldStatus,
+                    newStatus,
+                    oldPositionId,
+                    newPositionId,
+                    oldDepartmentId,
+                    newDepartmentId,
+                    actionDate,
+                    performedBy,
+                    notes
+                ]
             );
 
             results.successCount++;
         } catch (err) {
             results.failureCount++;
-            results.rowErrors.push({
-                rowNumber,
-                error: err.message
-            });
+            results.rowErrors.push({ rowNumber, error: err.message });
         }
     }
 
     return results;
 }
 
-function runImport(uploadType, records) {
+async function runImport(uploadType, records) {
     switch (uploadType) {
         case 'departments':
             return importDepartments(records);
@@ -657,25 +558,20 @@ router.get('/upload-csv', (req, res) => {
     return renderPage(res);
 });
 
-router.post('/upload-csv', upload.single('csvFile'), (req, res) => {
+router.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
     try {
         const uploadType = req.body.uploadType;
 
         if (!uploadType || !expectedHeaders[uploadType]) {
-            return renderPage(res, {
-                error: 'Please select a valid upload type.'
-            });
+            return renderPage(res, { error: 'Please select a valid upload type.' });
         }
 
         if (!req.file) {
-            return renderPage(res, {
-                error: 'Please choose a CSV file.'
-            });
+            return renderPage(res, { error: 'Please choose a CSV file.' });
         }
 
         const filePath = req.file.path;
         const fileContent = fs.readFileSync(filePath, 'utf8');
-
         const records = parse(fileContent, {
             columns: true,
             skip_empty_lines: true,
@@ -685,7 +581,6 @@ router.post('/upload-csv', upload.single('csvFile'), (req, res) => {
         fs.unlinkSync(filePath);
 
         const headerCheck = validateHeaders(uploadType, records);
-
         if (!headerCheck.ok) {
             return renderPage(res, {
                 error: headerCheck.error,
@@ -693,7 +588,7 @@ router.post('/upload-csv', upload.single('csvFile'), (req, res) => {
             });
         }
 
-        const importResult = runImport(uploadType, records);
+        const importResult = await runImport(uploadType, records);
 
         return renderPage(res, {
             message: `Import finished for ${uploadType}.`,

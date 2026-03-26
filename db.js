@@ -1,26 +1,39 @@
-﻿const path = require('path');
-const Database = require('better-sqlite3');
+﻿const { Pool } = require('pg');
+require('dotenv').config();
 
-const dbPath = path.join(__dirname, 'hr_system.db');
-const sqlite = new Database(dbPath);
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
 
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('foreign_keys = ON');
+pool.on('error', (err) => {
+    console.error('Unexpected PostgreSQL pool error:', err);
+});
 
-function all(sql, params = []) {
-    return Promise.resolve(sqlite.prepare(sql).all(...params));
+async function query(text, params = []) {
+    return pool.query(text, params);
 }
 
-function get(sql, params = []) {
-    return Promise.resolve(sqlite.prepare(sql).get(...params));
+async function get(text, params = []) {
+    const result = await pool.query(text, params);
+    return result.rows[0] || null;
 }
 
-function run(sql, params = []) {
-    return Promise.resolve(sqlite.prepare(sql).run(...params));
+async function all(text, params = []) {
+    const result = await pool.query(text, params);
+    return result.rows;
 }
 
-sqlite.all = all;
-sqlite.get = get;
-sqlite.run = run;
+async function run(text, params = []) {
+    return pool.query(text, params);
+}
 
-module.exports = sqlite;
+module.exports = {
+    pool,
+    query,
+    get,
+    all,
+    run
+};

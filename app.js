@@ -1,6 +1,8 @@
-﻿const express = require('express');
+﻿require('dotenv').config();
+const express = require('express');
 const path = require('path');
 const session = require('express-session');
+
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -64,3 +66,10 @@ app.use((req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET || 'change_this_secret',
+        resave: false,
+        saveUninitialized: false
+    })
+);
