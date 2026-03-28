@@ -1,39 +1,40 @@
-﻿<%- include('partials/header', { title: 'Login', activePage: 'login' }) %>
+<%- include('partials/header', { title: 'Login', activePage: 'login', isLoggedIn: false }) %>
 
-<section class="auth-page">
+<section class="auth-layout">
+  <div class="auth-side">
+    <span class="eyebrow">Internal access</span>
+    <h1>HR team login</h1>
+    <p>
+      Sign in to access dashboard pages, employee records, department views,
+      workload tracking, and admin CSV upload tools.
+    </p>
+
+    <div class="auth-points">
+      <div class="auth-point">Protected internal HR pages</div>
+      <div class="auth-point">Consistent dashboard navigation</div>
+      <div class="auth-point">Admin import workflow</div>
+    </div>
+  </div>
+
   <div class="auth-card">
     <div class="auth-head">
-      <h1>Login</h1>
-      <p>Sign in to access the internal HR dashboard.</p>
+      <h2>Sign in</h2>
+      <p>Use your HR credentials to continue.</p>
     </div>
 
     <% if (typeof error !== 'undefined' && error) { %>
-      <div class="alert-error">
-        <%= error %>
-      </div>
+      <div class="alert-error"><%= error %></div>
     <% } %>
 
     <form method="POST" action="/login" class="auth-form">
       <div class="form-row">
         <label for="username">Username</label>
-        <input
-          id="username"
-          name="username"
-          type="text"
-          required
-          autocomplete="username"
-        >
+        <input id="username" name="username" type="text" required />
       </div>
 
       <div class="form-row">
         <label for="password">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          required
-          autocomplete="current-password"
-        >
+        <input id="password" name="password" type="password" required />
       </div>
 
       <button type="submit" class="primary-btn">Sign in</button>
