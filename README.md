@@ -1,133 +1,69 @@
+# HR App
 
-# HR Tracker App
+A Node.js and Express HR operations platform for managing recruitment, employees, departments, organisation structure, workload visibility, and HR insights.
 
-A simple Flask + SQLite HR and Talent Acquisition web app based on your schema.
+This project is an early-stage HR application designed to evolve from an internal workflow tool into a broader platform for workforce planning, overload monitoring, and early burnout-risk indicators.
 
-## What this app does
+## Current scope
 
-It tracks:
+The app currently focuses on core HR workflows such as:
 
-- departments
-- positions
-- applicants
-- hired employees
-- recruitment and employee actions
+- applicant tracking
+- employee records
+- department and organisation views
+- HR insights and reporting
+- workload-related pages
+- admin CSV upload and data import
+- PostgreSQL-backed data storage
 
-It is designed around the schema from your notebook:
+## Product direction
 
-- `departments`
-- `positions`
-- `applicants`
-- `employees`
-- `actions`
+The long-term goal is to build an HR platform that helps teams:
+
+- manage hiring and employee lifecycle workflows
+- monitor workload and staffing pressure
+- improve reporting across departments
+- detect early warning signs linked to overload, absenteeism, and burnout risk
+
+At the current stage, the application should be understood as an **HR workflow and insights platform**, not yet a finished burnout-prediction system.
+
+## Tech stack
+
+- **Backend:** Node.js, Express
+- **Views:** EJS
+- **Database:** PostgreSQL
+- **Authentication/session support:** express-session
+- **File upload/parsing:** Multer, CSV parsing utilities
+- **Frontend:** server-rendered HTML, CSS, JavaScript
 
 ## Main features
 
-- dashboard with HR KPIs
-- add departments
-- add positions
-- add applicants
-- move applicants through hiring stages
-- hire an applicant into the employees table
-- track employee lifecycle changes
-- view recent actions and individual timelines
+Depending on the current route implementations in `branch1`, the app includes pages and modules for:
 
-## Important schema fix
+- dashboard / landing
+- applicants
+- employees
+- departments
+- organisation
+- insights
+- workload
+- admin upload
 
-Your original notebook schema had one SQL syntax problem in the `actions` table:
-there was a missing comma before the `FOREIGN KEY (old_department_id)` line.
-
-That is already fixed in `schema.sql` here.
-
-## Project structure
+## Repository structure
 
 ```text
-hr_tracker_app/
-├── app.py
-├── schema.sql
-├── requirements.txt
-├── hr_system.db           # created automatically on first run
-├── static/
-│   └── style.css
-└── templates/
-    ├── layout.html
-    ├── dashboard.html
-    ├── departments.html
-    ├── positions.html
-    ├── applicants.html
-    ├── applicant_form.html
-    ├── applicant_detail.html
-    ├── employees.html
-    └── employee_detail.html
-```
-
-## Step-by-step integration
-
-### 1. Create a project folder
-Put all files into one folder named `hr_tracker_app`.
-
-### 2. Open terminal in that folder
-Example:
-```bash
-cd hr_tracker_app
-```
-
-### 3. Create a virtual environment
-Windows:
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-macOS/Linux:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 4. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Start the application
-```bash
-python app.py
-```
-
-### 6. Open the browser
-Visit:
-```text
-http://127.0.0.1:5000
-```
-
-### 7. First run behaviour
-On first run the app will:
-
-- create `hr_system.db`
-- build all tables from `schema.sql`
-- insert seed data for departments, positions, applicants, employees, and actions
-
-## How to connect it to your own database
-
-If you already have your own SQLite database and want to keep its data:
-
-1. replace the generated `hr_system.db` with your own file
-2. make sure your schema matches `schema.sql`
-3. comment out the `DROP TABLE` lines in `schema.sql` if you do not want destructive resets
-4. keep `PRAGMA foreign_keys = ON`
-
-## Suggested next upgrades
-
-- authentication for HR admin users
-- edit/delete pages
-- file upload for CVs
-- analytics charts
-- leave management
-- payroll integration
-- employee document storage
-- role-based access
-
-## Notes
-
-This version is intentionally plain and simple on the frontend, as requested.
+hr_app/
+├── archive_flask/         # older Flask prototype kept for reference
+├── middleware/
+├── public/                # static assets
+├── routes/                # Express route modules
+├── services/              # business/data services
+├── views/                 # EJS templates
+├── app.js                 # main Express app entry point
+├── db.js                  # PostgreSQL connection/config
+├── schema.sql             # database schema
+├── init_db.js             # database initialisation
+├── seed_db.js             # optional seed data
+├── database_updates.sql   # schema/data update scripts
+├── package.json
+└── README.md
