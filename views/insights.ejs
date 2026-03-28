@@ -1,61 +1,68 @@
-﻿<%- include('partials/header', { title: 'Workload Insights', activePage: 'insights' }) %>
+<%- include('partials/header', { title: 'Workload Insights', activePage: 'insights' }) %>
 
-<section class="page-head">
+<section class="hero">
   <h1>Workload Insights</h1>
   <p>Operational recommendations for employees, departments, and projects.</p>
 </section>
 
-<section class="stats-grid">
-  <div class="stat-card">
-    <span class="stat-label">Total Employees</span>
-    <div class="stat-value"><%= summary.totalEmployees %></div>
-  </div>
+<section class="grid-3 stats-grid">
+  <article class="card stat-card">
+    <h3>Total employees</h3>
+    <p><%= summary.totalEmployees %></p>
+  </article>
 
-  <div class="stat-card">
-    <span class="stat-label">High Risk Employees</span>
-    <div class="stat-value"><%= summary.highRiskEmployees %></div>
-  </div>
+  <article class="card stat-card">
+    <h3>High risk employees</h3>
+    <p><%= summary.highRiskEmployees %></p>
+  </article>
 
-  <div class="stat-card">
-    <span class="stat-label">Overloaded Departments</span>
-    <div class="stat-value"><%= summary.overloadedDepartments %></div>
-  </div>
+  <article class="card stat-card">
+    <h3>Overloaded departments</h3>
+    <p><%= summary.overloadedDepartments %></p>
+  </article>
 
-  <div class="stat-card">
-    <span class="stat-label">Delayed / At Risk Projects</span>
-    <div class="stat-value"><%= summary.delayedProjects %></div>
-  </div>
+  <article class="card stat-card">
+    <h3>Delayed / at risk projects</h3>
+    <p><%= summary.delayedProjects %></p>
+  </article>
 </section>
 
-<section class="panel">
-  <h2>Recommendations</h2>
+<section class="card">
+  <div class="section-head">
+    <h2>Recommendations</h2>
+  </div>
 
   <% if (!recommendations || recommendations.length === 0) { %>
-    <div class="empty-state">No recommendations at the moment.</div>
+    <p>No recommendations at the moment.</p>
   <% } else { %>
-    <div class="recommendation-list">
+    <div class="insight-list">
       <% recommendations.forEach((item) => { %>
-        <div class="recommendation-card <%= item.severity.toLowerCase() %>">
-          <div class="recommendation-meta">
-            <span class="badge"><%= item.severity %></span>
-            <span class="type-label"><%= item.type %></span>
-          </div>
+        <article class="insight-item">
+          <p class="insight-meta">
+            <strong><%= item.severity %></strong> · <%= item.type %>
+          </p>
           <h3><%= item.title %></h3>
           <p><%= item.message %></p>
-        </div>
+        </article>
       <% }) %>
     </div>
   <% } %>
 </section>
 
-<section class="panel">
-  <h2>Employee Risk Overview</h2>
-  <div class="table-card">
+<section class="card">
+  <div class="section-head">
+    <h2>Employee risk overview</h2>
+  </div>
+
+  <% if (!employees || employees.length === 0) { %>
+    <p>No employee data available.</p>
+  <% } else { %>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Employee</th>
+            <th>Role</th>
             <th>Department</th>
             <th>Workload</th>
             <th>Risk</th>
@@ -65,33 +72,35 @@
           <% employees.forEach((emp) => { %>
             <tr>
               <td><%= emp.full_name %></td>
+              <td><%= emp.job_title || '-' %></td>
               <td><%= emp.department_name || '-' %></td>
               <td><%= emp.workload_percent || 0 %>%</td>
-              <td>
-                <span class="pill <%= emp.burnout_risk.toLowerCase() %>">
-                  <%= emp.burnout_risk %>
-                </span>
-              </td>
+              <td><%= emp.burnout_risk %></td>
             </tr>
           <% }) %>
         </tbody>
       </table>
     </div>
-  </div>
+  <% } %>
 </section>
 
-<section class="panel">
-  <h2>Department Status</h2>
-  <div class="table-card">
+<section class="card">
+  <div class="section-head">
+    <h2>Department status</h2>
+  </div>
+
+  <% if (!departments || departments.length === 0) { %>
+    <p>No department data available.</p>
+  <% } else { %>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
             <th>Department</th>
             <th>Employees</th>
-            <th>Average Workload</th>
-            <th>High Risk Employees</th>
-            <th>Delayed Projects</th>
+            <th>Average workload</th>
+            <th>High risk employees</th>
+            <th>Delayed projects</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -103,22 +112,23 @@
               <td><%= dep.avg_workload %>%</td>
               <td><%= dep.high_risk_count %></td>
               <td><%= dep.delayed_projects %></td>
-              <td>
-                <span class="pill <%= dep.status.toLowerCase().replace(/\s+/g, '-') %>">
-                  <%= dep.status %>
-                </span>
-              </td>
+              <td><%= dep.status %></td>
             </tr>
           <% }) %>
         </tbody>
       </table>
     </div>
-  </div>
+  <% } %>
 </section>
 
-<section class="panel">
-  <h2>Project Delivery Status</h2>
-  <div class="table-card">
+<section class="card">
+  <div class="section-head">
+    <h2>Project delivery status</h2>
+  </div>
+
+  <% if (!projects || projects.length === 0) { %>
+    <p>No project data available.</p>
+  <% } else { %>
     <div class="table-wrap">
       <table>
         <thead>
@@ -127,6 +137,7 @@
             <th>Department</th>
             <th>Deadline</th>
             <th>Status</th>
+            <th>Delivery risk</th>
           </tr>
         </thead>
         <tbody>
@@ -135,17 +146,14 @@
               <td><%= project.project_name %></td>
               <td><%= project.department_name || '-' %></td>
               <td><%= project.deadline || '-' %></td>
-              <td>
-                <span class="pill <%= project.delay_status.toLowerCase().replace(/\s+/g, '-') %>">
-                  <%= project.delay_status %>
-                </span>
-              </td>
+              <td><%= project.status || '-' %></td>
+              <td><%= project.delay_status %></td>
             </tr>
           <% }) %>
         </tbody>
       </table>
     </div>
-  </div>
+  <% } %>
 </section>
 
 <%- include('partials/footer') %>

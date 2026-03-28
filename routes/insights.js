@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const requireLogin = require('../middleware/auth');
@@ -9,45 +9,45 @@ const {
     generateRecommendations
 } = require('../services/insightsService');
 
-router.get('/', requireLogin, (req, res) => {
+router.get('/', requireLogin, async (req, res) => {
     try {
-        const departments = db.prepare(`
-            SELECT
-                department_id,
-                department_name
-            FROM departments
-            ORDER BY department_name
-        `).all();
+        const departments = await db.all(`
+      SELECT department_id, department_name
+      FROM departments
+      ORDER BY department_name
+    `);
 
-        const employeesRaw = db.prepare(`
-            SELECT
-                e.employee_id,
-                e.full_name,
-                e.job_title,
-                e.department_id,
-                e.workload_percent,
-                e.employment_status,
-                d.department_name
-            FROM employees e
-            LEFT JOIN departments d
-                ON e.department_id = d.department_id
-            WHERE e.employment_status = 'active'
-            ORDER BY e.full_name
-        `).all();
+        const employeesRaw = await db.all(`
+      SELECT
+        e.employee_id,
+        e.full_name,
+        p.position_title AS job_title,
+        COALESCE(e.department_id, p.department_id) AS department_id,
+        e.workload_percent,
+        e.employment_status,
+        d.department_name
+      FROM employees e
+      LEFT JOIN positions p
+        ON e.position_id = p.position_id
+      LEFT JOIN departments d
+        ON COALESCE(e.department_id, p.department_id) = d.department_id
+      WHERE e.employment_status = 'active'
+      ORDER BY e.full_name
+    `);
 
-        const projectsRaw = db.prepare(`
-            SELECT
-                p.project_id,
-                p.project_name,
-                p.department_id,
-                p.status,
-                p.deadline,
-                d.department_name
-            FROM projects p
-            LEFT JOIN departments d
-                ON p.department_id = d.department_id
-            ORDER BY p.deadline IS NULL, p.deadline, p.project_name
-        `).all();
+        const projectsRaw = await db.all(`
+      SELECT
+        p.project_id,
+        p.project_name,
+        p.department_id,
+        p.status,
+        p.deadline,
+        d.department_name
+      FROM projects p
+      LEFT JOIN departments d
+        ON p.department_id = d.department_id
+      ORDER BY p.deadline NULLS LAST, p.project_name
+    `);
 
         const employees = enrichEmployees(employeesRaw);
         const projects = enrichProjects(projectsRaw);
@@ -74,7 +74,7 @@ router.get('/', requireLogin, (req, res) => {
         });
     } catch (error) {
         console.error('Insights route error:', error);
-        res.status(500).send('Failed to load insights page.');
+        res.status(500).send(`Failed to load insights page: ${error.message}`);
     }
 });
 

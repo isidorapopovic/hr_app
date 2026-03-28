@@ -1,67 +1,49 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const requireLogin = require('../middleware/auth');
 const { buildOrgTree } = require('../services/orgService');
 
-router.get('/', requireLogin, (req, res) => {
+router.get('/', requireLogin, async (req, res) => {
     try {
-        let employees = [];
+        const employees = await db.all(`
+      SELECT
+        e.employee_id,
+        e.full_name,
+        p.position_title AS job_title,
+        COALESCE(e.department_id, p.department_id) AS department_id,
+        NULL AS manager_id,
+        d.department_name
+      FROM employees e
+      LEFT JOIN positions p
+        ON e.position_id = p.position_id
+      LEFT JOIN departments d
+        ON COALESCE(e.department_id, p.department_id) = d.department_id
+      WHERE e.employment_status = 'active'
+      ORDER BY d.department_name, e.full_name
+    `);
 
-        try {
-            employees = db.prepare(`
-                SELECT
-                    e.employee_id,
-                    e.full_name,
-                    e.job_title,
-                    e.department_id,
-                    e.manager_id,
-                    d.department_name
-                FROM employees e
-                LEFT JOIN departments d
-                    ON e.department_id = d.department_id
-                WHERE e.employment_status = 'active'
-                ORDER BY e.full_name
-            `).all();
-        } catch (error) {
-            employees = db.prepare(`
-                SELECT
-                    e.employee_id,
-                    e.full_name,
-                    e.job_title,
-                    e.department_id,
-                    NULL AS manager_id,
-                    d.department_name
-                FROM employees e
-                LEFT JOIN departments d
-                    ON e.department_id = d.department_id
-                WHERE e.employment_status = 'active'
-                ORDER BY e.full_name
-            `).all();
-        }
+        const hasManagerData = false;
+        const tree = buildOrgTree(employees, null);
 
-        const hasManagerData = employees.some(
-            (employee) => employee.manager_id !== null && employee.manager_id !== undefined
-        );
-
-        let tree;
-        if (hasManagerData) {
-            tree = buildOrgTree(employees, null);
-        } else {
-            tree = employees.map((employee) => ({
-                ...employee,
-                children: []
-            }));
-        }
+        const departmentGroups = employees.reduce((acc, employee) => {
+            const key = employee.department_name || 'Unassigned';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(employee);
+            return acc;
+        }, {});
 
         res.render('organisation', {
-            title: 'Organisation Chart',
+            title: 'Organisation',
             activePage: 'organisation',
-            tree
+            hasManagerData,
+            tree,
+            departmentGroups,
+            totalEmployees: employees.length
         });
     } catch (error) {
         console.error('Organisation route error:', error);
-        res.status(500).send('Failed to load organisation chart.');
+        res.status(500).send(`Failed to load organisation chart: ${error.message}`);
     }
 });
 
