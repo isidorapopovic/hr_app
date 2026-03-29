@@ -1,0 +1,23 @@
+﻿<%- include('partials/header') %>
+
+<section class="card">
+  <h2>Apply for <%= job ? job.title : 'Job' %></h2>
+
+  <form method="POST" action="/jobs/apply/<%= job.id %>" class="form-grid">
+    <label>Full name</label>
+    <input type="text" name="full_name" required>
+
+    <label>Email</label>
+    <input type="email" name="email" required>
+
+    <label>Phone</label>
+    <input type="text" name="phone">
+
+    <label>CV link</label>
+    <input type="text" name="cv_link">
+
+    <button type="submit">Submit application</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>

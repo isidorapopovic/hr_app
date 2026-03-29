@@ -1,0 +1,37 @@
+﻿<%- include('partials/header') %>
+
+<section class="card small-card">
+  <h2>Add Job Posting</h2>
+
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <form method="POST" action="/jobs/new" class="form-grid">
+    <label>Position title</label>
+    <input type="text" name="position_title" value="<%= formData.position_title || '' %>" required>
+
+    <label>Department</label>
+    <select name="department_id" required>
+      <option value="">Select department</option>
+      <% departments.forEach(dep => { %>
+        <option value="<%= dep.department_id %>" <%= String(formData.department_id || '') === String(dep.department_id) ? 'selected' : '' %>>
+          <%= dep.department_name %>
+        </option>
+      <% }) %>
+    </select>
+
+    <label>Position level</label>
+    <input type="text" name="position_level" value="<%= formData.position_level || '' %>">
+
+    <label>Status</label>
+    <select name="is_active">
+      <option value="1" <%= String(formData.is_active || '1') === '1' ? 'selected' : '' %>>Open</option>
+      <option value="0" <%= String(formData.is_active || '') === '0' ? 'selected' : '' %>>Closed</option>
+    </select>
+
+    <button type="submit">Create job posting</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>

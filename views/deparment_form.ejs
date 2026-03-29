@@ -1,0 +1,18 @@
+﻿<%- include('partials/header') %>
+
+<section class="card small-card">
+  <h2>Add Department</h2>
+
+  <% if (error) { %>
+    <p class="error"><%= error %></p>
+  <% } %>
+
+  <form method="POST" action="/departments/new" class="form-grid">
+    <label>Department name</label>
+    <input type="text" name="department_name" value="<%= formData.department_name || '' %>" required>
+
+    <button type="submit">Create department</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>

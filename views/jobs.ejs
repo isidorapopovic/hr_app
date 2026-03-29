@@ -1,0 +1,28 @@
+﻿<%- include('partials/header', { title: 'Job Postings', activePage: 'jobs' }) %>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Job Postings</h2>
+    <% if (user) { %>
+      <a class="button-link" href="/jobs/new">Add job posting</a>
+    <% } %>
+  </div>
+
+  <% if (!jobs || jobs.length === 0) { %>
+    <p>No job postings found.</p>
+  <% } else { %>
+    <div class="jobs-grid">
+      <% jobs.forEach(job => { %>
+        <article class="job-card">
+          <h3><%= job.position_title %></h3>
+          <p><strong>Department:</strong> <%= job.department_name || 'Unassigned' %></p>
+          <p><strong>Level:</strong> <%= job.position_level || '-' %></p>
+          <p><strong>Created:</strong> <%= job.created_at || '-' %></p>
+          <p><strong>Status:</strong> <%= job.is_active ? 'Open' : 'Closed' %></p>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>

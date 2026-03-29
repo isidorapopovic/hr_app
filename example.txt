@@ -1,0 +1,2 @@
+﻿move route to app folder for flask
+move routes outside for node.js 

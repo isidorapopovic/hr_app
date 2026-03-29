@@ -1,0 +1,101 @@
+<%- include('partials/header', { title: 'Organisation', activePage: 'organisation' }) %>
+
+<%
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function renderTree(nodes) {
+  if (!nodes || nodes.length === 0) return '';
+
+  let html = '<ul class="org-tree">';
+  nodes.forEach((node) => {
+    html += `
+      <li>
+        <div class="card org-node">
+          <h3>${escapeHtml(node.full_name)}</h3>
+          <p>${escapeHtml(node.job_title || 'No title')}</p>
+          <p>${escapeHtml(node.department_name || 'Unassigned')}</p>
+        </div>
+        ${renderTree(node.children || [])}
+      </li>
+    `;
+  });
+  html += '</ul>';
+  return html;
+}
+%>
+
+<section class="hero">
+  <h1>Organisation</h1>
+  <p>Current team structure and department breakdown.</p>
+</section>
+
+<section class="grid-3 stats-grid">
+  <article class="card stat-card">
+    <h3>Active employees</h3>
+    <p><%= totalEmployees %></p>
+  </article>
+
+  <article class="card stat-card">
+    <h3>Departments</h3>
+    <p><%= Object.keys(departmentGroups || {}).length %></p>
+  </article>
+
+  <article class="card stat-card">
+    <h3>Hierarchy mode</h3>
+    <p><%= hasManagerData ? 'Enabled' : 'Grouped view' %></p>
+  </article>
+</section>
+
+<% if (hasManagerData && tree && tree.length > 0) { %>
+  <section class="card">
+    <div class="section-head">
+      <h2>Organisation chart</h2>
+    </div>
+    <div class="org-tree-wrap">
+      <%- renderTree(tree) %>
+    </div>
+  </section>
+<% } else { %>
+  <section class="card">
+    <div class="section-head">
+      <h2>Department structure</h2>
+    </div>
+    <p>Manager relationships are not available in the current database, so employees are grouped by department.</p>
+  </section>
+
+  <% Object.keys(departmentGroups || {}).sort().forEach((departmentName) => { %>
+    <section class="card">
+      <div class="section-head">
+        <h2><%= departmentName %></h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% departmentGroups[departmentName].forEach((employee) => { %>
+              <tr>
+                <td><%= employee.full_name %></td>
+                <td><%= employee.job_title || '-' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  <% }) %>
+<% } %>
+
+<%- include('partials/footer') %>

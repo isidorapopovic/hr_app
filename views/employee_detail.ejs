@@ -1,0 +1,78 @@
+﻿<%- include('partials/header') %>
+
+<div class="container">
+  <section class="page-head">
+    <a href="/employees" class="back-link">Back to Employees</a>
+    <h1><%= employee.full_name %></h1>
+    <p class="page-subtitle">Employee profile and work information.</p>
+  </section>
+
+  <section class="stats-grid detail-stats">
+    <div class="stat-box">
+      <span class="stat-label">Department</span>
+      <strong class="stat-value employee-stat-text"><%= employee.department_name || '-' %></strong>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">Position</span>
+      <strong class="stat-value employee-stat-text"><%= employee.position_title || '-' %></strong>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">Workload</span>
+      <strong class="stat-value"><%= employee.workload_percent || 0 %>%</strong>
+    </div>
+
+    <div class="stat-box">
+      <span class="stat-label">Status</span>
+      <strong class="stat-value employee-stat-text"><%= employee.employment_status || '-' %></strong>
+    </div>
+  </section>
+
+  <section class="content-card">
+    <div class="projects-header">
+      <h2>Employee Details</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table class="overview-table">
+        <tbody>
+          <tr>
+            <th>Full name</th>
+            <td><%= employee.full_name %></td>
+          </tr>
+          <tr>
+            <th>Email</th>
+            <td><%= employee.email || '-' %></td>
+          </tr>
+          <tr>
+            <th>Department</th>
+            <td><%= employee.department_name || '-' %></td>
+          </tr>
+          <tr>
+            <th>Position</th>
+            <td><%= employee.position_title || '-' %></td>
+          </tr>
+          <tr>
+            <th>Hire date</th>
+            <td><%= employee.hire_date || '-' %></td>
+          </tr>
+          <tr>
+            <th>End date</th>
+            <td><%= employee.end_date || '-' %></td>
+          </tr>
+          <tr>
+            <th>Employment status</th>
+            <td><%= employee.employment_status || '-' %></td>
+          </tr>
+          <tr>
+            <th>Workload</th>
+            <td><%= employee.workload_percent || 0 %>%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<%- include('partials/footer') %>

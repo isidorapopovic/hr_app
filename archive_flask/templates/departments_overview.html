@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments Overview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        h1 {
+            margin-bottom: 24px;
+        }
+
+        .topbar {
+            margin-bottom: 20px;
+        }
+
+        .topbar a {
+            text-decoration: none;
+            background: #2d6cdf;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+        }
+
+        .dept-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .dept-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .dept-name {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f1f5f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .empty {
+            color: #777;
+            padding: 10px 0;
+        }
+
+        h3 {
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="/">Back to Home</a>
+    </div>
+
+    <h1>Departments Overview</h1>
+
+    {% for dept in departments %}
+        <div class="dept-card">
+            <div class="dept-header">
+                <div class="dept-name">
+                    {{ dept["department_name"] if "department_name" in dept else dept["name"] }}
+                </div>
+                <div>
+                    {% if "next_deadline" in dept and dept["next_deadline"] %}
+                        <span class="badge">Nearest deadline: {{ dept["next_deadline"] }}</span>
+                    {% elif "nearest_deadline" in dept and dept["nearest_deadline"] %}
+                        <span class="badge">Nearest deadline: {{ dept["nearest_deadline"] }}</span>
+                    {% else %}
+                        <span class="badge">No active deadlines</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Open Positions</div>
+                    <div class="stat-value">
+                        {% if "positions_count" in dept %}
+                            {{ dept["positions_count"] }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">Projects</div>
+                    <div class="stat-value">
+                        {% if "projects_count" in dept %}
+                            {{ dept["projects_count"] }}
+                        {% elif "active_projects" in dept %}
+                            {{ dept["active_projects"] }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">People Assigned</div>
+                    <div class="stat-value">
+                        {% if "people_assigned" in dept %}
+                            {{ dept["people_assigned"] }}
+                        {% elif "employees_count" in dept %}
+                            {{ dept["employees_count"] }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-label">Average Workload</div>
+                    <div class="stat-value">
+                        {% if "workload" in dept %}
+                            {{ dept["workload"] }}
+                        {% elif "avg_workload" in dept %}
+                            {{ dept["avg_workload"] }}%
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <h3>Projects</h3>
+
+            {% set dept_id = dept["department_id"] if "department_id" in dept else dept["id"] %}
+
+            {% if grouped_projects is defined and dept_id in grouped_projects %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Project</th>
+                            <th>Status</th>
+                            <th>Assigned People</th>
+                            <th>Deadline</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in grouped_projects[dept_id] %}
+                            <tr>
+                                <td>
+                                    {% if "project_name" in project %}
+                                        {{ project["project_name"] }}
+                                    {% else %}
+                                        {{ project["name"] }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ project["status"] if "status" in project else "Active" }}</td>
+                                <td>
+                                    {% if "assigned_people" in project %}
+                                        {{ project["assigned_people"] }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if "deadline" in project and project["deadline"] %}
+                                        {{ project["deadline"] }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty">No projects in this department.</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>

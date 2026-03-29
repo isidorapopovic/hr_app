@@ -1,0 +1,27 @@
+﻿{% extends "layout.html" %}
+{% block content %}
+<section class="page-header">
+    <div>
+        <h2>Login</h2>
+        <p>Sign in to access the HR system.</p>
+    </div>
+</section>
+
+<section class="card narrow-card">
+    <form method="post" action="{{ url_for('auth.login') }}" class="form-grid">
+        <label>
+            Username
+            <input type="text" name="username" required>
+        </label>
+
+        <label>
+            Password
+            <input type="password" name="password" required>
+        </label>
+
+        <div class="form-actions">
+            <button type="submit">Log in</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

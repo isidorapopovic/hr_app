@@ -1,0 +1,159 @@
+<%- include('partials/header', { title: 'Workload Insights', activePage: 'insights' }) %>
+
+<section class="hero">
+  <h1>Workload Insights</h1>
+  <p>Operational recommendations for employees, departments, and projects.</p>
+</section>
+
+<section class="grid-3 stats-grid">
+  <article class="card stat-card">
+    <h3>Total employees</h3>
+    <p><%= summary.totalEmployees %></p>
+  </article>
+
+  <article class="card stat-card">
+    <h3>High risk employees</h3>
+    <p><%= summary.highRiskEmployees %></p>
+  </article>
+
+  <article class="card stat-card">
+    <h3>Overloaded departments</h3>
+    <p><%= summary.overloadedDepartments %></p>
+  </article>
+
+  <article class="card stat-card">
+    <h3>Delayed / at risk projects</h3>
+    <p><%= summary.delayedProjects %></p>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Recommendations</h2>
+  </div>
+
+  <% if (!recommendations || recommendations.length === 0) { %>
+    <p>No recommendations at the moment.</p>
+  <% } else { %>
+    <div class="insight-list">
+      <% recommendations.forEach((item) => { %>
+        <article class="insight-item">
+          <p class="insight-meta">
+            <strong><%= item.severity %></strong> · <%= item.type %>
+          </p>
+          <h3><%= item.title %></h3>
+          <p><%= item.message %></p>
+        </article>
+      <% }) %>
+    </div>
+  <% } %>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Employee risk overview</h2>
+  </div>
+
+  <% if (!employees || employees.length === 0) { %>
+    <p>No employee data available.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Workload</th>
+            <th>Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% employees.forEach((emp) => { %>
+            <tr>
+              <td><%= emp.full_name %></td>
+              <td><%= emp.job_title || '-' %></td>
+              <td><%= emp.department_name || '-' %></td>
+              <td><%= emp.workload_percent || 0 %>%</td>
+              <td><%= emp.burnout_risk %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Department status</h2>
+  </div>
+
+  <% if (!departments || departments.length === 0) { %>
+    <p>No department data available.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th>Employees</th>
+            <th>Average workload</th>
+            <th>High risk employees</th>
+            <th>Delayed projects</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% departments.forEach((dep) => { %>
+            <tr>
+              <td><%= dep.department_name %></td>
+              <td><%= dep.employee_count %></td>
+              <td><%= dep.avg_workload %>%</td>
+              <td><%= dep.high_risk_count %></td>
+              <td><%= dep.delayed_projects %></td>
+              <td><%= dep.status %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Project delivery status</h2>
+  </div>
+
+  <% if (!projects || projects.length === 0) { %>
+    <p>No project data available.</p>
+  <% } else { %>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Department</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Delivery risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% projects.forEach((project) => { %>
+            <tr>
+              <td><%= project.project_name %></td>
+              <td><%= project.department_name || '-' %></td>
+              <td><%= project.deadline || '-' %></td>
+              <td><%= project.status || '-' %></td>
+              <td><%= project.delay_status %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>
+
+<%- include('partials/footer') %>
