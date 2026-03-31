@@ -1,14 +1,20 @@
 const express = require('express');
+const router = express.Router();
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { parse } = require('csv-parse/sync');
 const db = require('../db');
+const requireLogin = require('../middleware/auth');
 
-const router = express.Router();
+const uploadDir = path.join(__dirname, '../uploads');
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const upload = multer({
-    dest: path.join(__dirname, '../uploads'),
+    dest: uploadDir,
     fileFilter: (req, file, cb) => {
         if (!file.originalname.toLowerCase().endsWith('.csv')) {
             return cb(new Error('Only CSV files are allowed.'));
@@ -58,7 +64,8 @@ const expectedHeaders = {
         'action_date',
         'performed_by',
         'notes'
-    ]
+    ],
+    combined: []
 };
 
 const validApplicantStatuses = [
@@ -101,6 +108,17 @@ function safeValue(value) {
     return trimmed === '' ? null : trimmed;
 }
 
+function normaliseStatus(value) {
+    return safeValue(value)?.toLowerCase() || null;
+}
+
+function toIntegerOrNull(value) {
+    const v = safeValue(value);
+    if (v === null) return null;
+    const n = Number(v);
+    return Number.isInteger(n) ? n : null;
+}
+
 function renderPage(res, {
     message = null,
     error = null,
@@ -131,6 +149,14 @@ function validateHeaders(uploadType, records) {
     }
 
     const detectedHeaders = Object.keys(records[0]);
+
+    if (uploadType === 'combined') {
+        return {
+            ok: true,
+            detectedHeaders
+        };
+    }
+
     const requiredHeaders = expectedHeaders[uploadType] || [];
 
     const missingHeaders = requiredHeaders.filter(
@@ -151,6 +177,184 @@ function validateHeaders(uploadType, records) {
     };
 }
 
+async function getDepartmentByName(departmentName) {
+    if (!departmentName) return null;
+    return db.get(
+        'SELECT department_id, department_name FROM departments WHERE LOWER(department_name) = LOWER($1) LIMIT 1',
+        [departmentName]
+    );
+}
+
+async function findOrCreateDepartment(departmentName) {
+    if (!departmentName) return null;
+
+    let department = await getDepartmentByName(departmentName);
+    if (department) return department;
+
+    await db.run(
+        'INSERT INTO departments (department_name) VALUES ($1)',
+        [departmentName]
+    );
+
+    department = await getDepartmentByName(departmentName);
+    return department;
+}
+
+async function getPositionByTitle(positionTitle) {
+    if (!positionTitle) return null;
+    return db.get(
+        'SELECT position_id, department_id, position_title FROM positions WHERE LOWER(position_title) = LOWER($1) LIMIT 1',
+        [positionTitle]
+    );
+}
+
+async function findOrCreatePosition({ positionTitle, departmentId, positionLevel = null, isActive = 1 }) {
+    if (!positionTitle) return null;
+
+    let position = await getPositionByTitle(positionTitle);
+    if (position) return position;
+
+    await db.run(
+        `INSERT INTO positions (position_title, department_id, position_level, is_active)
+     VALUES ($1, $2, $3, $4)`,
+        [positionTitle, departmentId, positionLevel, isActive]
+    );
+
+    position = await getPositionByTitle(positionTitle);
+    return position;
+}
+
+async function getApplicantByFullName(fullName) {
+    if (!fullName) return null;
+    return db.get(
+        'SELECT applicant_id, full_name FROM applicants WHERE LOWER(full_name) = LOWER($1) LIMIT 1',
+        [fullName]
+    );
+}
+
+async function findOrCreateApplicant({
+    fullName,
+    yearsExperience = 0,
+    currentOrLastPosition = null,
+    positionId = null,
+    applicationStatus = 'applied',
+    appliedAt = null,
+    notes = null
+}) {
+    if (!fullName) return null;
+
+    let applicant = await getApplicantByFullName(fullName);
+    if (applicant) return applicant;
+
+    await db.run(
+        `INSERT INTO applicants (
+      full_name,
+      years_experience,
+      current_or_last_position,
+      position_id,
+      application_status,
+      applied_at,
+      notes
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+            fullName,
+            yearsExperience,
+            currentOrLastPosition,
+            positionId,
+            applicationStatus,
+            appliedAt || new Date().toISOString(),
+            notes
+        ]
+    );
+
+    applicant = await getApplicantByFullName(fullName);
+    return applicant;
+}
+
+async function getEmployeeByFullName(fullName) {
+    if (!fullName) return null;
+    return db.get(
+        'SELECT employee_id, full_name FROM employees WHERE LOWER(full_name) = LOWER($1) LIMIT 1',
+        [fullName]
+    );
+}
+
+async function findOrCreateEmployee({
+    applicantId = null,
+    fullName,
+    departmentId = null,
+    positionId = null,
+    hireDate,
+    employmentStatus = 'active',
+    endDate = null
+}) {
+    if (!fullName) return null;
+
+    let employee = await getEmployeeByFullName(fullName);
+    if (employee) return employee;
+
+    await db.run(
+        `INSERT INTO employees (
+      applicant_id,
+      full_name,
+      department_id,
+      position_id,
+      hire_date,
+      employment_status,
+      end_date
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+            applicantId,
+            fullName,
+            departmentId,
+            positionId,
+            hireDate,
+            employmentStatus,
+            endDate
+        ]
+    );
+
+    employee = await getEmployeeByFullName(fullName);
+    return employee;
+}
+
+async function getProjectByName(projectName) {
+    if (!projectName) return null;
+    return db.get(
+        'SELECT project_id, project_name FROM projects WHERE LOWER(project_name) = LOWER($1) LIMIT 1',
+        [projectName]
+    );
+}
+
+async function findOrCreateProject({
+    projectName,
+    departmentId,
+    startDate = null,
+    endDate = null,
+    deadline = null,
+    status = 'Active'
+}) {
+    if (!projectName) return null;
+
+    let project = await getProjectByName(projectName);
+    if (project) return project;
+
+    await db.run(
+        `INSERT INTO projects (
+      project_name,
+      department_id,
+      start_date,
+      end_date,
+      deadline,
+      status
+    ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [projectName, departmentId, startDate, endDate, deadline, status]
+    );
+
+    project = await getProjectByName(projectName);
+    return project;
+}
+
 async function importDepartments(records) {
     const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
@@ -160,12 +364,17 @@ async function importDepartments(records) {
 
         try {
             const departmentName = safeValue(row.department_name);
-            if (!departmentName) throw new Error('department_name is required.');
+            if (!departmentName) {
+                throw new Error('department_name is required.');
+            }
 
-            await db.run(
-                'INSERT INTO departments (department_name) VALUES ($1)',
-                [departmentName]
-            );
+            const existing = await getDepartmentByName(departmentName);
+            if (!existing) {
+                await db.run(
+                    'INSERT INTO departments (department_name) VALUES ($1)',
+                    [departmentName]
+                );
+            }
 
             results.successCount++;
         } catch (err) {
@@ -195,18 +404,17 @@ async function importPositions(records) {
             if (isActiveRaw === null) throw new Error('is_active is required.');
             if (!['0', '1'].includes(isActiveRaw)) throw new Error('is_active must be 0 or 1.');
 
-            const department = await db.get(
-                'SELECT department_id FROM departments WHERE department_name = $1',
-                [departmentName]
-            );
-
+            const department = await getDepartmentByName(departmentName);
             if (!department) throw new Error(`Department not found: ${departmentName}`);
 
-            await db.run(
-                `INSERT INTO positions (position_title, department_id, position_level, is_active)
-         VALUES ($1, $2, $3, $4)`,
-                [positionTitle, department.department_id, positionLevel, Number(isActiveRaw)]
-            );
+            const existing = await getPositionByTitle(positionTitle);
+            if (!existing) {
+                await db.run(
+                    `INSERT INTO positions (position_title, department_id, position_level, is_active)
+           VALUES ($1, $2, $3, $4)`,
+                    [positionTitle, department.department_id, positionLevel, Number(isActiveRaw)]
+                );
+            }
 
             results.successCount++;
         } catch (err) {
@@ -230,7 +438,7 @@ async function importApplicants(records) {
             const yearsExperienceRaw = safeValue(row.years_experience);
             const currentOrLastPosition = safeValue(row.current_or_last_position);
             const positionTitle = safeValue(row.position_title);
-            const applicationStatus = safeValue(row.application_status) || 'applied';
+            const applicationStatus = normaliseStatus(row.application_status) || 'applied';
             const appliedAt = safeValue(row.applied_at);
             const notes = safeValue(row.notes);
 
@@ -248,34 +456,34 @@ async function importApplicants(records) {
 
             let positionId = null;
             if (positionTitle) {
-                const position = await db.get(
-                    'SELECT position_id FROM positions WHERE position_title = $1',
-                    [positionTitle]
-                );
+                const position = await getPositionByTitle(positionTitle);
                 if (!position) throw new Error(`Position not found: ${positionTitle}`);
                 positionId = position.position_id;
             }
 
-            await db.run(
-                `INSERT INTO applicants (
-          full_name,
-          years_experience,
-          current_or_last_position,
-          position_id,
-          application_status,
-          applied_at,
-          notes
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [
-                    fullName,
-                    yearsExperience,
-                    currentOrLastPosition,
-                    positionId,
-                    applicationStatus,
-                    appliedAt || new Date().toISOString(),
-                    notes
-                ]
-            );
+            const existing = await getApplicantByFullName(fullName);
+            if (!existing) {
+                await db.run(
+                    `INSERT INTO applicants (
+            full_name,
+            years_experience,
+            current_or_last_position,
+            position_id,
+            application_status,
+            applied_at,
+            notes
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                    [
+                        fullName,
+                        yearsExperience,
+                        currentOrLastPosition,
+                        positionId,
+                        applicationStatus,
+                        appliedAt || new Date().toISOString(),
+                        notes
+                    ]
+                );
+            }
 
             results.successCount++;
         } catch (err) {
@@ -299,7 +507,7 @@ async function importEmployees(records) {
             const fullName = safeValue(row.full_name);
             const positionTitle = safeValue(row.position_title);
             const hireDate = safeValue(row.hire_date);
-            const employmentStatus = safeValue(row.employment_status) || 'active';
+            const employmentStatus = normaliseStatus(row.employment_status) || 'active';
             const endDate = safeValue(row.end_date);
 
             if (!fullName) throw new Error('full_name is required.');
@@ -310,42 +518,39 @@ async function importEmployees(records) {
                 throw new Error(`Invalid employment_status: ${employmentStatus}`);
             }
 
-            const position = await db.get(
-                'SELECT position_id, department_id FROM positions WHERE position_title = $1',
-                [positionTitle]
-            );
+            const position = await getPositionByTitle(positionTitle);
             if (!position) throw new Error(`Position not found: ${positionTitle}`);
 
             let applicantId = null;
             if (applicantFullName) {
-                const applicant = await db.get(
-                    'SELECT applicant_id FROM applicants WHERE full_name = $1',
-                    [applicantFullName]
-                );
+                const applicant = await getApplicantByFullName(applicantFullName);
                 if (!applicant) throw new Error(`Applicant not found: ${applicantFullName}`);
                 applicantId = applicant.applicant_id;
             }
 
-            await db.run(
-                `INSERT INTO employees (
-          applicant_id,
-          full_name,
-          department_id,
-          position_id,
-          hire_date,
-          employment_status,
-          end_date
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                [
-                    applicantId,
-                    fullName,
-                    position.department_id,
-                    position.position_id,
-                    hireDate,
-                    employmentStatus,
-                    endDate
-                ]
-            );
+            const existing = await getEmployeeByFullName(fullName);
+            if (!existing) {
+                await db.run(
+                    `INSERT INTO employees (
+            applicant_id,
+            full_name,
+            department_id,
+            position_id,
+            hire_date,
+            employment_status,
+            end_date
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                    [
+                        applicantId,
+                        fullName,
+                        position.department_id,
+                        position.position_id,
+                        hireDate,
+                        employmentStatus,
+                        endDate
+                    ]
+                );
+            }
 
             results.successCount++;
         } catch (err) {
@@ -375,23 +580,23 @@ async function importProjects(records) {
             if (!projectName) throw new Error('project_name is required.');
             if (!departmentName) throw new Error('department_name is required.');
 
-            const department = await db.get(
-                'SELECT department_id FROM departments WHERE department_name = $1',
-                [departmentName]
-            );
+            const department = await getDepartmentByName(departmentName);
             if (!department) throw new Error(`Department not found: ${departmentName}`);
 
-            await db.run(
-                `INSERT INTO projects (
-          project_name,
-          department_id,
-          start_date,
-          end_date,
-          deadline,
-          status
-        ) VALUES ($1, $2, $3, $4, $5, $6)`,
-                [projectName, department.department_id, startDate, endDate, deadline, status]
-            );
+            const existing = await getProjectByName(projectName);
+            if (!existing) {
+                await db.run(
+                    `INSERT INTO projects (
+            project_name,
+            department_id,
+            start_date,
+            end_date,
+            deadline,
+            status
+          ) VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [projectName, department.department_id, startDate, endDate, deadline, status]
+                );
+            }
 
             results.successCount++;
         } catch (err) {
@@ -413,7 +618,7 @@ async function importActions(records) {
         try {
             const applicantFullName = safeValue(row.applicant_full_name);
             const employeeFullName = safeValue(row.employee_full_name);
-            const actionType = safeValue(row.action_type);
+            const actionType = normaliseStatus(row.action_type);
             const oldStatus = safeValue(row.old_status);
             const newStatus = safeValue(row.new_status);
             const oldPositionTitle = safeValue(row.old_position_title);
@@ -437,19 +642,13 @@ async function importActions(records) {
             let newDepartmentId = null;
 
             if (applicantFullName) {
-                const applicant = await db.get(
-                    'SELECT applicant_id FROM applicants WHERE full_name = $1',
-                    [applicantFullName]
-                );
+                const applicant = await getApplicantByFullName(applicantFullName);
                 if (!applicant) throw new Error(`Applicant not found: ${applicantFullName}`);
                 applicantId = applicant.applicant_id;
             }
 
             if (employeeFullName) {
-                const employee = await db.get(
-                    'SELECT employee_id FROM employees WHERE full_name = $1',
-                    [employeeFullName]
-                );
+                const employee = await getEmployeeByFullName(employeeFullName);
                 if (!employee) throw new Error(`Employee not found: ${employeeFullName}`);
                 employeeId = employee.employee_id;
             }
@@ -459,37 +658,25 @@ async function importActions(records) {
             }
 
             if (oldPositionTitle) {
-                const position = await db.get(
-                    'SELECT position_id FROM positions WHERE position_title = $1',
-                    [oldPositionTitle]
-                );
+                const position = await getPositionByTitle(oldPositionTitle);
                 if (!position) throw new Error(`Old position not found: ${oldPositionTitle}`);
                 oldPositionId = position.position_id;
             }
 
             if (newPositionTitle) {
-                const position = await db.get(
-                    'SELECT position_id FROM positions WHERE position_title = $1',
-                    [newPositionTitle]
-                );
+                const position = await getPositionByTitle(newPositionTitle);
                 if (!position) throw new Error(`New position not found: ${newPositionTitle}`);
                 newPositionId = position.position_id;
             }
 
             if (oldDepartmentName) {
-                const department = await db.get(
-                    'SELECT department_id FROM departments WHERE department_name = $1',
-                    [oldDepartmentName]
-                );
+                const department = await getDepartmentByName(oldDepartmentName);
                 if (!department) throw new Error(`Old department not found: ${oldDepartmentName}`);
                 oldDepartmentId = department.department_id;
             }
 
             if (newDepartmentName) {
-                const department = await db.get(
-                    'SELECT department_id FROM departments WHERE department_name = $1',
-                    [newDepartmentName]
-                );
+                const department = await getDepartmentByName(newDepartmentName);
                 if (!department) throw new Error(`New department not found: ${newDepartmentName}`);
                 newDepartmentId = department.department_id;
             }
@@ -535,6 +722,208 @@ async function importActions(records) {
     return results;
 }
 
+async function importCombined(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
+
+    for (let i = 0; i < records.length; i++) {
+        const rowNumber = i + 2;
+        const row = records[i];
+
+        try {
+            const departmentName = safeValue(row.department_name || row.new_department_name);
+            const positionTitle = safeValue(row.position_title || row.new_position_title);
+            const positionLevel = safeValue(row.position_level);
+            const isActiveRaw = safeValue(row.is_active);
+            const applicantFullName = safeValue(row.applicant_full_name || row.full_name);
+            const applicantYearsExperience = safeValue(row.years_experience);
+            const applicantCurrentOrLastPosition = safeValue(row.current_or_last_position);
+            const applicantStatus = normaliseStatus(row.application_status) || 'applied';
+            const appliedAt = safeValue(row.applied_at);
+            const applicantNotes = safeValue(row.notes);
+
+            const employeeFullName = safeValue(row.employee_full_name || row.full_name);
+            const hireDate = safeValue(row.hire_date);
+            const employmentStatus = normaliseStatus(row.employment_status) || 'active';
+            const endDate = safeValue(row.end_date);
+
+            const projectName = safeValue(row.project_name);
+            const projectStartDate = safeValue(row.start_date);
+            const projectEndDate = safeValue(row.end_date);
+            const projectDeadline = safeValue(row.deadline);
+            const projectStatus = safeValue(row.status) || 'Active';
+
+            const actionType = normaliseStatus(row.action_type);
+            const oldStatus = safeValue(row.old_status);
+            const newStatus = safeValue(row.new_status);
+            const oldPositionTitle = safeValue(row.old_position_title);
+            const newPositionTitle = safeValue(row.new_position_title);
+            const oldDepartmentName = safeValue(row.old_department_name);
+            const newDepartmentName = safeValue(row.new_department_name);
+            const actionDate = safeValue(row.action_date) || new Date().toISOString();
+            const performedBy = safeValue(row.performed_by);
+
+            const hasUsefulData = !!(
+                departmentName ||
+                positionTitle ||
+                applicantFullName ||
+                employeeFullName ||
+                projectName ||
+                actionType
+            );
+
+            if (!hasUsefulData) {
+                throw new Error('Row has no recognised combined import fields.');
+            }
+
+            let department = null;
+            if (departmentName) {
+                department = await findOrCreateDepartment(departmentName);
+            }
+
+            let position = null;
+            if (positionTitle) {
+                const isActive = isActiveRaw === null ? 1 : Number(isActiveRaw);
+                position = await findOrCreatePosition({
+                    positionTitle,
+                    departmentId: department ? department.department_id : null,
+                    positionLevel,
+                    isActive
+                });
+            }
+
+            let applicant = null;
+            if (applicantFullName) {
+                const yearsExperience = applicantYearsExperience === null ? 0 : Number(applicantYearsExperience);
+                if (Number.isNaN(yearsExperience) || yearsExperience < 0) {
+                    throw new Error('years_experience must be a number >= 0.');
+                }
+
+                if (!validApplicantStatuses.includes(applicantStatus)) {
+                    throw new Error(`Invalid application_status: ${applicantStatus}`);
+                }
+
+                applicant = await findOrCreateApplicant({
+                    fullName: applicantFullName,
+                    yearsExperience,
+                    currentOrLastPosition: applicantCurrentOrLastPosition,
+                    positionId: position ? position.position_id : null,
+                    applicationStatus: applicantStatus,
+                    appliedAt,
+                    notes: applicantNotes
+                });
+            }
+
+            let employee = null;
+            if (employeeFullName && hireDate) {
+                if (!validEmploymentStatuses.includes(employmentStatus)) {
+                    throw new Error(`Invalid employment_status: ${employmentStatus}`);
+                }
+
+                employee = await findOrCreateEmployee({
+                    applicantId: applicant ? applicant.applicant_id : null,
+                    fullName: employeeFullName,
+                    departmentId: position?.department_id || department?.department_id || null,
+                    positionId: position ? position.position_id : null,
+                    hireDate,
+                    employmentStatus,
+                    endDate
+                });
+            }
+
+            if (projectName) {
+                if (!department) {
+                    throw new Error('department_name is required when project_name is provided.');
+                }
+
+                await findOrCreateProject({
+                    projectName,
+                    departmentId: department.department_id,
+                    startDate: projectStartDate,
+                    endDate: projectEndDate,
+                    deadline: projectDeadline,
+                    status: projectStatus
+                });
+            }
+
+            if (actionType) {
+                if (!validActionTypes.includes(actionType)) {
+                    throw new Error(`Invalid action_type: ${actionType}`);
+                }
+
+                let oldPositionId = null;
+                let newPositionId = null;
+                let oldDepartmentId = null;
+                let newDepartmentId = null;
+
+                if (oldPositionTitle) {
+                    const oldPosition = await getPositionByTitle(oldPositionTitle);
+                    if (!oldPosition) throw new Error(`Old position not found: ${oldPositionTitle}`);
+                    oldPositionId = oldPosition.position_id;
+                }
+
+                if (newPositionTitle) {
+                    const nextPosition = await findOrCreatePosition({
+                        positionTitle: newPositionTitle,
+                        departmentId: department ? department.department_id : null,
+                        positionLevel: null,
+                        isActive: 1
+                    });
+                    newPositionId = nextPosition.position_id;
+                }
+
+                if (oldDepartmentName) {
+                    const oldDepartment = await getDepartmentByName(oldDepartmentName);
+                    if (!oldDepartment) throw new Error(`Old department not found: ${oldDepartmentName}`);
+                    oldDepartmentId = oldDepartment.department_id;
+                }
+
+                if (newDepartmentName) {
+                    const nextDepartment = await findOrCreateDepartment(newDepartmentName);
+                    newDepartmentId = nextDepartment.department_id;
+                }
+
+                await db.run(
+                    `INSERT INTO actions (
+            applicant_id,
+            employee_id,
+            action_type,
+            old_status,
+            new_status,
+            old_position_id,
+            new_position_id,
+            old_department_id,
+            new_department_id,
+            action_date,
+            performed_by,
+            notes
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+                    [
+                        applicant ? applicant.applicant_id : null,
+                        employee ? employee.employee_id : null,
+                        actionType,
+                        oldStatus,
+                        newStatus,
+                        oldPositionId,
+                        newPositionId,
+                        oldDepartmentId,
+                        newDepartmentId,
+                        actionDate,
+                        performedBy,
+                        applicantNotes
+                    ]
+                );
+            }
+
+            results.successCount++;
+        } catch (err) {
+            results.failureCount++;
+            results.rowErrors.push({ rowNumber, error: err.message });
+        }
+    }
+
+    return results;
+}
+
 async function runImport(uploadType, records) {
     switch (uploadType) {
         case 'departments':
@@ -549,20 +938,22 @@ async function runImport(uploadType, records) {
             return importProjects(records);
         case 'actions':
             return importActions(records);
+        case 'combined':
+            return importCombined(records);
         default:
             throw new Error('Unsupported upload type.');
     }
 }
 
-router.get('/upload-csv', (req, res) => {
+router.get('/upload-csv', requireLogin, (req, res) => {
     return renderPage(res);
 });
 
-router.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
+router.post('/upload-csv', requireLogin, upload.single('csvFile'), async (req, res) => {
     try {
-        const uploadType = req.body.uploadType;
+        const uploadType = safeValue(req.body.uploadType);
 
-        if (!uploadType || !expectedHeaders[uploadType]) {
+        if (!uploadType || !expectedHeaders.hasOwnProperty(uploadType)) {
             return renderPage(res, { error: 'Please select a valid upload type.' });
         }
 
@@ -572,6 +963,7 @@ router.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
 
         const filePath = req.file.path;
         const fileContent = fs.readFileSync(filePath, 'utf8');
+
         const records = parse(fileContent, {
             columns: true,
             skip_empty_lines: true,

@@ -28,6 +28,7 @@
           <option value="employees">Employees</option>
           <option value="projects">Projects</option>
           <option value="actions">Actions</option>
+          <option value="combined">Combined HR CSV</option>
         </select>
       </div>
 
@@ -38,6 +39,12 @@
 
       <button type="submit" class="primary-btn">Upload CSV</button>
     </form>
+
+    <form action="/admin/import-csv" method="POST" enctype="multipart/form-data">
+    <label for="csvFile">Upload combined HR CSV</label>
+    <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
+    <button type="submit">Upload CSV</button>
+</form>
   </article>
 
   <article class="panel">
