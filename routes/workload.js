@@ -8,54 +8,41 @@ router.get('/', requireLogin, async (req, res) => {
     let employeesWithoutProjects = [];
 
     try {
-        projectAssignments = await db.all(
-            `SELECT
-         p.project_id,
-         p.project_name,
-         p.deadline,
-         p.status,
-         d.department_name,
-         COUNT(ep.employee_id)::int AS assigned_people,
-         COALESCE(STRING_AGG(e.full_name, ', ' ORDER BY e.full_name), '') AS assigned_names
-       FROM projects p
-       LEFT JOIN departments d
-         ON p.department_id = d.department_id
-       LEFT JOIN employee_projects ep
-         ON p.project_id = ep.project_id
-       LEFT JOIN employees e
-         ON ep.employee_id = e.employee_id
-       GROUP BY
-         p.project_id,
-         p.project_name,
-         p.deadline,
-         p.status,
-         d.department_name
-       ORDER BY p.status, p.project_name`
-        );
+        projectAssignments = await db.all(`
+      SELECT
+        p.project_id,
+        p.project_name,
+        p.deadline,
+        p.status,
+        d.department_name,
+        COUNT(ep.employee_id) AS assigned_people,
+        STRING_AGG(e.full_name, ', ' ORDER BY e.full_name) AS assigned_names
+      FROM projects p
+      LEFT JOIN departments d ON p.department_id = d.department_id
+      LEFT JOIN employee_projects ep ON p.project_id = ep.project_id
+      LEFT JOIN employees e ON ep.employee_id = e.employee_id
+      GROUP BY p.project_id, p.project_name, p.deadline, p.status, d.department_name
+      ORDER BY p.status, p.project_name
+    `);
 
-        employeesWithoutProjects = await db.all(
-            `SELECT
-         e.employee_id,
-         e.full_name,
-         e.email,
-         e.workload_percent,
-         d.department_name
-       FROM employees e
-       LEFT JOIN departments d
-         ON e.department_id = d.department_id
-       LEFT JOIN employee_projects ep
-         ON e.employee_id = ep.employee_id
-       WHERE ep.employee_project_id IS NULL
-       ORDER BY e.full_name`
-        );
+        employeesWithoutProjects = await db.all(`
+      SELECT
+        e.employee_id,
+        e.full_name,
+        e.email,
+        e.workload_percent,
+        d.department_name
+      FROM employees e
+      LEFT JOIN departments d ON e.department_id = d.department_id
+      LEFT JOIN employee_projects ep ON e.employee_id = ep.employee_id
+      WHERE ep.employee_id IS NULL
+      ORDER BY e.full_name
+    `);
     } catch (err) {
         console.error('Workload page error:', err.message);
     }
 
-    res.render('workload', {
-        projectAssignments,
-        employeesWithoutProjects
-    });
+    res.render('workload', { projectAssignments, employeesWithoutProjects });
 });
 
 module.exports = router;

@@ -1,13 +1,13 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const requireLogin = require('../middleware/auth');
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     let jobs = [];
 
     try {
-        jobs = db.prepare(`
+        jobs = await db.all(`
       SELECT
         p.position_id,
         p.position_title,
@@ -16,10 +16,9 @@ router.get('/', (req, res) => {
         p.created_at,
         d.department_name
       FROM positions p
-      LEFT JOIN departments d
-        ON p.department_id = d.department_id
+      LEFT JOIN departments d ON p.department_id = d.department_id
       ORDER BY p.created_at DESC, p.position_title
-    `).all();
+    `);
     } catch (err) {
         console.error('Jobs query error:', err.message);
     }
@@ -27,36 +26,32 @@ router.get('/', (req, res) => {
     res.render('jobs', { jobs });
 });
 
-router.get('/new', requireLogin, (req, res) => {
+router.get('/new', requireLogin, async (req, res) => {
     let departments = [];
 
     try {
-        departments = db.prepare(`
+        departments = await db.all(`
       SELECT department_id, department_name
       FROM departments
       ORDER BY department_name
-    `).all();
+    `);
     } catch (err) {
         console.error('Departments for job form error:', err.message);
     }
 
-    res.render('job_form', {
-        departments,
-        error: null,
-        formData: {}
-    });
+    res.render('job_form', { departments, error: null, formData: {} });
 });
 
-router.post('/new', requireLogin, (req, res) => {
+router.post('/new', requireLogin, async (req, res) => {
     const { position_title, department_id, position_level, is_active } = req.body;
-
     let departments = [];
+
     try {
-        departments = db.prepare(`
+        departments = await db.all(`
       SELECT department_id, department_name
       FROM departments
       ORDER BY department_name
-    `).all();
+    `);
 
         if (!position_title || !department_id) {
             return res.render('job_form', {
@@ -66,14 +61,17 @@ router.post('/new', requireLogin, (req, res) => {
             });
         }
 
-        db.prepare(`
+        await db.run(
+            `
       INSERT INTO positions (position_title, department_id, position_level, is_active)
-      VALUES (?, ?, ?, ?)
-    `).run(
-            position_title,
-            Number(department_id),
-            position_level || null,
-            Number(is_active || 1)
+      VALUES ($1, $2, $3, $4)
+      `,
+            [
+                position_title,
+                Number(department_id),
+                position_level || null,
+                Number(is_active || 1)
+            ]
         );
 
         return res.redirect('/jobs');

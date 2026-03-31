@@ -1,11 +1,8 @@
 require('dotenv').config();
 
-
-
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session);
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -18,10 +15,8 @@ const organisationRoutes = require('./routes/organisation');
 const insightsRoutes = require('./routes/insights');
 const adminRoutes = require('./routes/admin');
 
-const { pool } = require('./db');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -32,19 +27,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
     session({
-        store: new pgSession({
-            pool,
-            tableName: 'user_sessions',
-            createTableIfMissing: true
-        }),
         secret: process.env.SESSION_SECRET || 'change_this_secret',
         resave: false,
         saveUninitialized: false,
         cookie: {
             secure: false,
-            httpOnly: true,
-            sameSite: 'lax',
-            maxAge: 1000 * 60 * 60 * 24 * 7
+            httpOnly: true
         }
     })
 );
