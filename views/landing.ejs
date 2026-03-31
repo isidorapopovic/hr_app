@@ -1,43 +1,50 @@
-<%- include('partials/header', { title: 'Home', activePage: 'home', isLoggedIn: false }) %>
+<%- include('partials/header', { title: 'Home', activePage: 'home', isLoggedIn: isLoggedIn }) %>
 
-<section class="hero-card">
+<section class="hero">
   <div class="hero-copy">
-    <span class="eyebrow">HR operations platform</span>
-    <h1>Recruitment and workforce visibility in one place</h1>
+    <span class="eyebrow">Recruitment and HR visibility in one place</span>
+    <h1>Manage hiring, people data, and workforce insight with a cleaner HR workspace.</h1>
     <p class="hero-text">
-      Manage public job postings, support HR workflows, and build visibility across departments,
-      employees, workload, and organisational structure.
+      Publish open roles, support internal HR workflows, and give teams visibility across
+      departments, employees, workload, and organisational structure.
     </p>
 
     <div class="hero-actions">
-      <a href="/jobs" class="primary-link">View job postings</a>
-      <a href="/login" class="secondary-link">HR login</a>
+      <a href="/jobs" class="btn btn-primary">View open positions</a>
+      <a href="/login" class="btn btn-secondary">HR login</a>
+    </div>
+
+    <div class="hero-points">
+      <div class="info-chip">Public access: job vacancies</div>
+      <div class="info-chip">Internal tools: departments, employees, insights</div>
+      <div class="info-chip">Use case: recruitment and HR tracking</div>
     </div>
   </div>
 
-  <div class="hero-panel">
-    <div class="mini-stat">
-      <span class="mini-label">Public access</span>
-      <strong>Job vacancies</strong>
+  <aside class="hero-panel">
+    <div class="metric-card">
+      <span class="metric-label">Visible vacancies</span>
+      <strong class="metric-value"><%= jobs ? jobs.length : 0 %></strong>
     </div>
-    <div class="mini-stat">
-      <span class="mini-label">Internal tools</span>
-      <strong>Departments, employees, insights</strong>
+    <div class="metric-card">
+      <span class="metric-label">Access type</span>
+      <strong class="metric-value small">Public + Internal</strong>
     </div>
-    <div class="mini-stat">
-      <span class="mini-label">Use case</span>
-      <strong>Recruitment and HR tracking</strong>
+    <div class="metric-card">
+      <span class="metric-label">Platform focus</span>
+      <strong class="metric-value small">Hiring and workforce operations</strong>
     </div>
-  </div>
+  </aside>
 </section>
 
-<section class="panel">
-  <div class="section-head">
+<section class="section-block">
+  <div class="section-heading">
     <div>
-      <h2>Open positions</h2>
+      <span class="section-kicker">Open positions</span>
+      <h2>Current vacancies</h2>
       <p>Current vacancies visible to all visitors.</p>
     </div>
-    <a href="/jobs" class="text-link">See all</a>
+    <a href="/jobs" class="text-link">See all jobs</a>
   </div>
 
   <% if (!jobs || jobs.length === 0) { %>
@@ -46,22 +53,29 @@
     </div>
   <% } else { %>
     <div class="job-grid">
-      <% jobs.forEach(job => { %>
+      <% jobs.slice(0, 6).forEach(job => { %>
         <article class="job-card">
           <div class="job-card-top">
-            <h3><%= job.position_title %></h3>
-            <span class="pill <%= job.is_active ? 'active-ok' : 'at-risk' %>">
+            <span class="status-pill <%= job.is_active ? 'open' : 'closed' %>">
               <%= job.is_active ? 'Open' : 'Closed' %>
             </span>
           </div>
 
-          <div class="job-meta">
-            <p><strong>Department:</strong> <%= job.department_name || 'Unassigned' %></p>
-            <p><strong>Level:</strong> <%= job.position_level || '-' %></p>
-          </div>
+          <h3><%= job.position_title %></h3>
 
-          <div class="job-actions">
-            <a href="/apply/<%= job.position_id %>" class="secondary-link">Apply</a>
+          <ul class="job-meta">
+            <li>
+              <span>Department</span>
+              <strong><%= job.department_name || 'Unassigned' %></strong>
+            </li>
+            <li>
+              <span>Level</span>
+              <strong><%= job.position_level || '-' %></strong>
+            </li>
+          </ul>
+
+          <div class="job-card-actions">
+            <a href="/jobs" class="text-link">View posting</a>
           </div>
         </article>
       <% }) %>
@@ -69,21 +83,19 @@
   <% } %>
 </section>
 
-<section class="feature-grid">
-  <article class="nav-card">
-    <h2>Public recruitment</h2>
-    <p>Show open roles clearly and keep the application flow simple for candidates.</p>
-  </article>
-
-  <article class="nav-card">
-    <h2>Internal HR pages</h2>
-    <p>Secure internal views for departments, employees, workload, and data uploads.</p>
-  </article>
-
-  <article class="nav-card">
-    <h2>Scalable structure</h2>
-    <p>A consistent layout that can grow into analytics, burnout monitoring, and reporting.</p>
-  </article>
+<section class="feature-band">
+  <div class="feature-card">
+    <h3>Recruitment workflows</h3>
+    <p>Track open roles, applicants, and hiring movement across teams.</p>
+  </div>
+  <div class="feature-card">
+    <h3>Workforce visibility</h3>
+    <p>See departments, employees, and workload in one internal workspace.</p>
+  </div>
+  <div class="feature-card">
+    <h3>Operational insight</h3>
+    <p>Support reporting and structured HR decision-making across the business.</p>
+  </div>
 </section>
 
 <%- include('partials/footer') %>
