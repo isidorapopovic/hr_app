@@ -1,8 +1,9 @@
 require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
-
+const pgSession = require('connect-pg-simple')(session);
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -15,8 +16,10 @@ const organisationRoutes = require('./routes/organisation');
 const insightsRoutes = require('./routes/insights');
 const adminRoutes = require('./routes/admin');
 
+const { pool } = require('./db');
+
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -27,9 +30,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
     session({
-        secret: 'change_this_secret',
+        store: new pgSession({
+            pool,
+            tableName: 'user_sessions',
+            createTableIfMissing: true
+        }),
+        secret: process.env.SESSION_SECRET || 'change_this_secret',
         resave: false,
-        saveUninitialized: false
+        saveUninitialized: false,
+        cookie: {
+            secure: false,
+            httpOnly: true,
+            sameSite: 'lax',
+            maxAge: 1000 * 60 * 60 * 24 * 7
+        }
     })
 );
 
@@ -49,27 +63,15 @@ app.use('/jobs', jobsRoutes);
 app.use('/applicants', applicantsRoutes);
 app.use('/employees', employeesRoutes);
 app.use('/workload', workloadRoutes);
-
-
-// new routes
 app.use('/organisation', organisationRoutes);
 app.use('/insights', insightsRoutes);
 app.use('/admin', adminRoutes);
 
 // 404 page
 app.use((req, res) => {
-    res.status(404).render('404', {
-        title: 'Page not found'
-    });
+    res.status(404).render('404', { title: 'Page not found' });
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET || 'change_this_secret',
-        resave: false,
-        saveUninitialized: false
-    })
-);
