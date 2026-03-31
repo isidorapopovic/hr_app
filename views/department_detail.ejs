@@ -1,11 +1,5 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header', { title: department.department_name, activePage: 'departments', isLoggedIn: isLoggedIn }) %>
 
-<div class="container">
-  <section class="page-head">
-    <a href="/departments/overview" class="back-link">Back to Departments Overview</a>
-    <h1><%= department.department_name %></h1>
-    <p class="page-subtitle">Department details, project timeline, and employees.</p>
-  </section>
 
   <section class="stats-grid detail-stats">
     <div class="stat-box">
@@ -104,4 +98,4 @@
   </section>
 </div>
 
-<%- include('partials/footer') %>
+<%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>

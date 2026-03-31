@@ -1,65 +1,57 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const requireLogin = require('../middleware/auth');
 
-/*
-  OVERVIEW PAGE
-  /departments/overview
-*/
-router.get('/overview', async (req, res) => {
+async function renderDepartmentsOverview(req, res) {
     try {
-        const departments = await db.all(`
+        const departments = await db.all(
+            `
       SELECT
         d.department_id,
         d.department_name,
-        COUNT(DISTINCT CASE WHEN p.is_active = 1 THEN p.position_id END) AS open_positions,
-        COUNT(DISTINCT pr.project_id) AS projects_count,
-        COUNT(DISTINCT ep.employee_id) AS people_assigned,
+        COUNT(DISTINCT CASE WHEN p.is_active = 1 THEN p.position_id END)::int AS open_positions,
+        COUNT(DISTINCT pr.project_id)::int AS projects_count,
+        COUNT(DISTINCT e.employee_id)::int AS employees_count,
         ROUND(COALESCE(AVG(e.workload_percent), 0), 0) AS avg_workload,
         MIN(
           CASE
-            WHEN pr.deadline IS NOT NULL AND pr.status <> 'Completed' THEN pr.deadline
+            WHEN pr.deadline IS NOT NULL AND COALESCE(pr.status, '') <> 'Completed'
+            THEN pr.deadline
             ELSE NULL
           END
         ) AS nearest_deadline
       FROM departments d
-      LEFT JOIN positions p
-        ON p.department_id = d.department_id
-      LEFT JOIN projects pr
-        ON pr.department_id = d.department_id
-      LEFT JOIN employees e
-        ON e.department_id = d.department_id
-      LEFT JOIN employee_projects ep
-        ON ep.employee_id = e.employee_id
+      LEFT JOIN positions p ON p.department_id = d.department_id
+      LEFT JOIN projects pr ON pr.department_id = d.department_id
+      LEFT JOIN employees e ON e.department_id = d.department_id
       GROUP BY d.department_id, d.department_name
       ORDER BY d.department_name
-    `);
+      `
+        );
 
         res.render('departments_overview', {
+            title: 'Department Overview',
             activePage: 'departments',
             isLoggedIn: true,
             departments
         });
     } catch (err) {
-        console.error('Departments overview error:', err);
-        res.status(500).send('Failed to load departments overview.');
+        console.error('Departments overview error:', err.message);
+        res.status(500).send('Failed to load department overview.');
     }
-});
+}
 
-/*
-  DEPARTMENT DETAIL PAGE
-  /departments/:departmentId
-*/
-router.get('/:departmentId', async (req, res) => {
+router.get('/', requireLogin, renderDepartmentsOverview);
+router.get('/overview', requireLogin, renderDepartmentsOverview);
+
+router.get('/:departmentId', requireLogin, async (req, res) => {
     try {
         const { departmentId } = req.params;
 
         const department = await db.get(
             `
-      SELECT
-        department_id,
-        department_name,
-        created_at
+      SELECT department_id, department_name, created_at
       FROM departments
       WHERE department_id = $1
       `,
@@ -97,8 +89,7 @@ router.get('/:departmentId', async (req, res) => {
         p.position_title,
         p.position_level
       FROM employees e
-      LEFT JOIN positions p
-        ON p.position_id = e.position_id
+      LEFT JOIN positions p ON p.position_id = e.position_id
       WHERE e.department_id = $1
       ORDER BY e.full_name
       `,
@@ -122,6 +113,7 @@ router.get('/:departmentId', async (req, res) => {
         );
 
         res.render('department_detail', {
+            title: department.department_name,
             activePage: 'departments',
             isLoggedIn: true,
             department,
@@ -130,7 +122,7 @@ router.get('/:departmentId', async (req, res) => {
             projects
         });
     } catch (err) {
-        console.error('Department detail error:', err);
+        console.error('Department detail error:', err.message);
         res.status(500).send('Failed to load department detail.');
     }
 });
