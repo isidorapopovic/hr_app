@@ -1,19 +1,42 @@
-      </div>
-    </main>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? `${title} | HR App` : 'HR App' %></title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand-block">
+        <div class="brand-kicker">HR OPERATIONS PLATFORM</div>
+        <div class="brand-name">HR App</div>
+        <div class="brand-tagline">Recruitment, workforce visibility, and internal HR workflows</div>
+      </a>
 
-    <footer class="site-footer">
-      <div class="container footer-inner">
-        <div>
-          <strong>HR App</strong>
-          <p>Recruitment and HR tracking for internal teams.</p>
-        </div>
-        <div class="footer-links">
-          <a href="/">Home</a>
-          <a href="/jobs">Jobs</a>
-          <a href="/login">HR Login</a>
-        </div>
-      </div>
-    </footer>
-  </div>
-</body>
-</html>
+      <nav class="main-nav">
+        <a href="/" class="<%= activePage === 'home' ? 'active' : '' %>">Home</a>
+        <a href="/jobs" class="<%= activePage === 'jobs' ? 'active' : '' %>">Job Postings</a>
+
+        <% if (isLoggedIn) { %>
+          <a href="/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+          <a href="/departments" class="<%= activePage === 'departments' ? 'active' : '' %>">Department Overview</a>
+          <a href="/employees" class="<%= activePage === 'employees' ? 'active' : '' %>">Employees</a>
+          <a href="/workload" class="<%= activePage === 'workload' ? 'active' : '' %>">Workload</a>
+          <a href="/organisation" class="<%= activePage === 'organisation' ? 'active' : '' %>">Organisation</a>
+          <a href="/insights" class="<%= activePage === 'insights' ? 'active' : '' %>">Insights</a>
+          <a href="/admin/upload-csv" class="<%= activePage === 'admin-upload' ? 'active' : '' %>">Admin Upload</a>
+
+          <form action="/logout" method="POST" class="logout-form">
+            <button type="submit" class="logout-btn">Logout</button>
+          </form>
+        <% } else { %>
+          <a href="/login" class="<%= activePage === 'login' ? 'active' : '' %>">HR Login</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
