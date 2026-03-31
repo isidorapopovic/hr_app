@@ -47,7 +47,6 @@ app.use(
     })
 );
 
-// make login/user data available in all EJS views
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     res.locals.currentUser = req.session.user || null;
@@ -55,7 +54,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// routes
 app.use('/', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/departments', departmentsRoutes);
@@ -67,7 +65,6 @@ app.use('/organisation', organisationRoutes);
 app.use('/insights', insightsRoutes);
 app.use('/admin', adminRoutes);
 
-// 404 page
 app.use((req, res) => {
     res.status(404).render('404', { title: 'Page not found' });
 });
