@@ -19,7 +19,7 @@
         <a href="/" class="<%= activePage === 'home' ? 'active' : '' %>">Home</a>
         <a href="/jobs" class="<%= activePage === 'jobs' ? 'active' : '' %>">Job Postings</a>
 
-        <% if (isLoggedIn) { %>
+        <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
           <a href="/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">Dashboard</a>
           <a href="/departments" class="<%= activePage === 'departments' ? 'active' : '' %>">Department Overview</a>
           <a href="/employees" class="<%= activePage === 'employees' ? 'active' : '' %>">Employees</a>

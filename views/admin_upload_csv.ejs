@@ -1,117 +1,101 @@
-<%- include('partials/header', { title: 'Admin CSV Upload', activePage: 'admin_upload', isLoggedIn: isLoggedIn, user: user }) %>
+<%- include('partials/header', { title: 'Admin CSV Upload', activePage: 'admin-upload', isLoggedIn: isLoggedIn, user: user }) %>
 
-<section class="page-head">
-  <h1>Admin CSV Upload</h1>
-  <p>Import HR data in a controlled order and review results before continuing.</p>
-</section>
+<div class="page-card">
+  <h1 class="section-title">Admin CSV Upload</h1>
+  <p>Import HR data from a CSV file and review the results below.</p>
 
-<section class="grid-2 upload-layout">
-  <article class="panel">
-    <h2>Upload file</h2>
+  <% if (message) { %>
+    <div class="alert-success"><%= message %></div>
+  <% } %>
 
-    <% if (message) { %>
-      <div class="alert-success"><%= message %></div>
-    <% } %>
+  <% if (error) { %>
+    <div class="alert-error"><%= error %></div>
+  <% } %>
 
-    <% if (error) { %>
-      <div class="alert-error"><%= error %></div>
-    <% } %>
-
-    <form method="POST" action="/admin/upload-csv" enctype="multipart/form-data" class="auth-form">
-      <div class="form-row">
-        <label for="uploadType">Upload Type</label>
-        <select id="uploadType" name="uploadType" required>
-          <option value="">Select data type</option>
-          <option value="departments">Departments</option>
-          <option value="positions">Positions</option>
-          <option value="applicants">Applicants</option>
-          <option value="employees">Employees</option>
-          <option value="projects">Projects</option>
-          <option value="actions">Actions</option>
-          <option value="combined">Combined HR CSV</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <label for="csvFile">CSV File</label>
-        <input id="csvFile" name="csvFile" type="file" accept=".csv" required />
-      </div>
-
-      <button type="submit" class="primary-btn">Upload CSV</button>
-    </form>
-
-    <form action="/admin/import-csv" method="POST" enctype="multipart/form-data">
-    <label for="csvFile">Upload combined HR CSV</label>
-    <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
-    <button type="submit">Upload CSV</button>
-</form>
-  </article>
-
-  <article class="panel">
-    <h2>Expected upload order</h2>
-    <ol class="ordered-list">
-      <li>Departments</li>
-      <li>Positions</li>
-      <li>Applicants</li>
-      <li>Employees</li>
-      <li>Projects</li>
-      <li>Actions</li>
-    </ol>
-  </article>
-</section>
-
-<% if (typeof importSummary !== 'undefined' && importSummary) { %>
-  <section class="stats-grid">
-    <article class="stat-card">
-      <span class="stat-label">Type</span>
-      <div class="stat-value"><%= importSummary.uploadType %></div>
-    </article>
-    <article class="stat-card">
-      <span class="stat-label">Total rows</span>
-      <div class="stat-value"><%= importSummary.totalRows %></div>
-    </article>
-    <article class="stat-card">
-      <span class="stat-label">Successful</span>
-      <div class="stat-value"><%= importSummary.successCount %></div>
-    </article>
-    <article class="stat-card">
-      <span class="stat-label">Failed</span>
-      <div class="stat-value"><%= importSummary.failureCount %></div>
-    </article>
-  </section>
-<% } %>
-
-<% if (typeof detectedHeaders !== 'undefined' && detectedHeaders.length > 0) { %>
-  <section class="panel">
-    <h2>Detected Columns</h2>
-    <div class="tag-row">
-      <% detectedHeaders.forEach((header) => { %>
-        <span class="badge"><%= header %></span>
-      <% }) %>
+  <form action="/admin/upload-csv" method="POST" enctype="multipart/form-data" class="auth-form">
+    <div class="form-row">
+      <label for="uploadType">Upload Type</label>
+      <select name="uploadType" id="uploadType" required>
+        <option value="">Select data type</option>
+        <option value="departments">Departments</option>
+        <option value="positions">Positions</option>
+        <option value="applicants">Applicants</option>
+        <option value="employees">Employees</option>
+        <option value="projects">Projects</option>
+        <option value="actions">Actions</option>
+        <option value="combined">Combined HR CSV</option>
+      </select>
     </div>
-  </section>
-<% } %>
 
-<% if (typeof rowErrors !== 'undefined' && rowErrors.length > 0) { %>
-  <section class="panel">
-    <h2>Row Errors</h2>
-    <div class="recommendation-list">
-      <% rowErrors.forEach((rowError) => { %>
-        <div class="recommendation-card high">
-          <div class="recommendation-meta">
-            <span class="badge">Row <%= rowError.rowNumber %></span>
-          </div>
-          <p><%= rowError.error %></p>
-        </div>
-      <% }) %>
+    <div class="form-row">
+      <label for="csvFile">CSV File</label>
+      <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
     </div>
-  </section>
-<% } %>
 
-<% if (typeof previewRows !== 'undefined' && previewRows.length > 0) { %>
-  <section class="table-card">
+    <button type="submit" class="primary-btn">Upload CSV</button>
+  </form>
+
+  <% if (typeof importSummary !== 'undefined' && importSummary) { %>
+    <div class="section-space"></div>
+    <h2 class="subsection-title">Import Summary</h2>
     <div class="table-wrap">
-      <table>
+      <table class="data-table">
+        <tbody>
+          <tr>
+            <th>Type</th>
+            <td><%= importSummary.uploadType %></td>
+          </tr>
+          <tr>
+            <th>Total rows</th>
+            <td><%= importSummary.totalRows %></td>
+          </tr>
+          <tr>
+            <th>Successful</th>
+            <td><%= importSummary.successCount %></td>
+          </tr>
+          <tr>
+            <th>Failed</th>
+            <td><%= importSummary.failureCount %></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% if (typeof detectedHeaders !== 'undefined' && detectedHeaders.length > 0) { %>
+    <div class="section-space"></div>
+    <h2 class="subsection-title">Detected Columns</h2>
+    <p><%= detectedHeaders.join(', ') %></p>
+  <% } %>
+
+  <% if (typeof rowErrors !== 'undefined' && rowErrors.length > 0) { %>
+    <div class="section-space"></div>
+    <h2 class="subsection-title">Row Errors</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>CSV Row</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% rowErrors.forEach((rowError) => { %>
+            <tr>
+              <td><%= rowError.rowNumber %></td>
+              <td><%= rowError.error %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <% if (typeof previewRows !== 'undefined' && previewRows.length > 0) { %>
+    <div class="section-space"></div>
+    <h2 class="subsection-title">Preview</h2>
+    <div class="table-wrap">
+      <table class="data-table">
         <thead>
           <tr>
             <% Object.keys(previewRows[0]).forEach((key) => { %>
@@ -130,7 +114,7 @@
         </tbody>
       </table>
     </div>
-  </section>
-<% } %>
+  <% } %>
+</div>
 
-<%- include('partials/footer') %>
+<%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>

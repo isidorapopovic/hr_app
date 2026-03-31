@@ -1,159 +1,125 @@
-<%- include('partials/header', { title: 'Workload Insights', activePage: 'insights' }) %>
+<%- include('partials/header', { title: 'Workload Insights', activePage: 'insights', isLoggedIn: isLoggedIn }) %>
 
-<section class="hero">
-  <h1>Workload Insights</h1>
+<div class="page-card">
+  <h1 class="page-title">Workload Insights</h1>
   <p>Operational recommendations for employees, departments, and projects.</p>
-</section>
 
-<section class="grid-3 stats-grid">
-  <article class="card stat-card">
-    <h3>Total employees</h3>
-    <p><%= summary.totalEmployees %></p>
-  </article>
-
-  <article class="card stat-card">
-    <h3>High risk employees</h3>
-    <p><%= summary.highRiskEmployees %></p>
-  </article>
-
-  <article class="card stat-card">
-    <h3>Overloaded departments</h3>
-    <p><%= summary.overloadedDepartments %></p>
-  </article>
-
-  <article class="card stat-card">
-    <h3>Delayed / at risk projects</h3>
-    <p><%= summary.delayedProjects %></p>
-  </article>
-</section>
-
-<section class="card">
-  <div class="section-head">
-    <h2>Recommendations</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <span class="stat-card-label">Total employees</span>
+      <span class="stat-card-value"><%= summary.totalEmployees %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card-label">High risk employees</span>
+      <span class="stat-card-value"><%= summary.highRiskEmployees %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card-label">Overloaded departments</span>
+      <span class="stat-card-value"><%= summary.overloadedDepartments %></span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-card-label">Delayed / at risk projects</span>
+      <span class="stat-card-value"><%= summary.delayedProjects %></span>
+    </div>
   </div>
 
+  <h2 class="subsection-title">Recommendations</h2>
   <% if (!recommendations || recommendations.length === 0) { %>
     <p>No recommendations at the moment.</p>
   <% } else { %>
-    <div class="insight-list">
+    <div class="cards-stack">
       <% recommendations.forEach((item) => { %>
-        <article class="insight-item">
-          <p class="insight-meta">
-            <strong><%= item.severity %></strong> · <%= item.type %>
-          </p>
+        <div class="mini-card">
+          <div class="mini-card-meta"><strong><%= item.severity %></strong> · <%= item.type %></div>
           <h3><%= item.title %></h3>
           <p><%= item.message %></p>
-        </article>
+        </div>
       <% }) %>
     </div>
   <% } %>
-</section>
 
-<section class="card">
-  <div class="section-head">
-    <h2>Employee risk overview</h2>
+  <div class="section-space"></div>
+  <h2 class="subsection-title">Employee risk overview</h2>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>Department</th>
+          <th>Role</th>
+          <th>Workload</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% employees.forEach((emp) => { %>
+          <tr>
+            <td><%= emp.full_name %></td>
+            <td><%= emp.department_name || '-' %></td>
+            <td><%= emp.job_title || '-' %></td>
+            <td><%= emp.workload_percent || 0 %>%</td>
+            <td><%= emp.burnout_risk %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
   </div>
 
-  <% if (!employees || employees.length === 0) { %>
-    <p>No employee data available.</p>
-  <% } else { %>
-    <div class="table-wrap">
-      <table>
-        <thead>
+  <div class="section-space"></div>
+  <h2 class="subsection-title">Department status</h2>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Department</th>
+          <th>Employees</th>
+          <th>Average workload</th>
+          <th>High risk employees</th>
+          <th>Delayed projects</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% departments.forEach((dep) => { %>
           <tr>
-            <th>Employee</th>
-            <th>Role</th>
-            <th>Department</th>
-            <th>Workload</th>
-            <th>Risk</th>
+            <td><%= dep.department_name %></td>
+            <td><%= dep.employee_count %></td>
+            <td><%= dep.avg_workload %>%</td>
+            <td><%= dep.high_risk_count %></td>
+            <td><%= dep.delayed_projects %></td>
+            <td><%= dep.status %></td>
           </tr>
-        </thead>
-        <tbody>
-          <% employees.forEach((emp) => { %>
-            <tr>
-              <td><%= emp.full_name %></td>
-              <td><%= emp.job_title || '-' %></td>
-              <td><%= emp.department_name || '-' %></td>
-              <td><%= emp.workload_percent || 0 %>%</td>
-              <td><%= emp.burnout_risk %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
-</section>
-
-<section class="card">
-  <div class="section-head">
-    <h2>Department status</h2>
+        <% }) %>
+      </tbody>
+    </table>
   </div>
 
-  <% if (!departments || departments.length === 0) { %>
-    <p>No department data available.</p>
-  <% } else { %>
-    <div class="table-wrap">
-      <table>
-        <thead>
+  <div class="section-space"></div>
+  <h2 class="subsection-title">Project delivery status</h2>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Department</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th>Delivery risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% projects.forEach((project) => { %>
           <tr>
-            <th>Department</th>
-            <th>Employees</th>
-            <th>Average workload</th>
-            <th>High risk employees</th>
-            <th>Delayed projects</th>
-            <th>Status</th>
+            <td><%= project.project_name %></td>
+            <td><%= project.department_name || '-' %></td>
+            <td><%= project.deadline ? new Date(project.deadline).toLocaleDateString('en-GB') : '-' %></td>
+            <td><%= project.status || '-' %></td>
+            <td><%= project.delay_status %></td>
           </tr>
-        </thead>
-        <tbody>
-          <% departments.forEach((dep) => { %>
-            <tr>
-              <td><%= dep.department_name %></td>
-              <td><%= dep.employee_count %></td>
-              <td><%= dep.avg_workload %>%</td>
-              <td><%= dep.high_risk_count %></td>
-              <td><%= dep.delayed_projects %></td>
-              <td><%= dep.status %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
-</section>
-
-<section class="card">
-  <div class="section-head">
-    <h2>Project delivery status</h2>
+        <% }) %>
+      </tbody>
+    </table>
   </div>
+</div>
 
-  <% if (!projects || projects.length === 0) { %>
-    <p>No project data available.</p>
-  <% } else { %>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Department</th>
-            <th>Deadline</th>
-            <th>Status</th>
-            <th>Delivery risk</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% projects.forEach((project) => { %>
-            <tr>
-              <td><%= project.project_name %></td>
-              <td><%= project.department_name || '-' %></td>
-              <td><%= project.deadline || '-' %></td>
-              <td><%= project.status || '-' %></td>
-              <td><%= project.delay_status %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
-</section>
-
-<%- include('partials/footer') %>
+<%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>

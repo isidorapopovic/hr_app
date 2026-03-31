@@ -66,6 +66,7 @@ router.get('/', requireLogin, async (req, res) => {
         res.render('insights', {
             title: 'Workload Insights',
             activePage: 'insights',
+            isLoggedIn: true,
             summary,
             employees,
             departments: departmentInsights,
@@ -77,5 +78,7 @@ router.get('/', requireLogin, async (req, res) => {
         res.status(500).send(`Failed to load insights page: ${error.message}`);
     }
 });
+
+
 
 module.exports = router;

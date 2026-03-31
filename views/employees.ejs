@@ -6,12 +6,12 @@
   <form method="GET" action="/employees" class="filter-bar">
     <label for="status">Filter by status</label>
     <select name="status" id="status">
-      <option value="">All</option>
-      <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
-      <option value="on_leave" <%= status === 'on_leave' ? 'selected' : '' %>>On leave</option>
-      <option value="transferred" <%= status === 'transferred' ? 'selected' : '' %>>Transferred</option>
-      <option value="resigned" <%= status === 'resigned' ? 'selected' : '' %>>Resigned</option>
-      <option value="terminated" <%= status === 'terminated' ? 'selected' : '' %>>Terminated</option>
+      <option value="" <%= !selectedStatus ? 'selected' : '' %>>All</option>
+      <option value="active" <%= selectedStatus === 'active' ? 'selected' : '' %>>Active</option>
+      <option value="on_leave" <%= selectedStatus === 'on_leave' ? 'selected' : '' %>>On leave</option>
+      <option value="transferred" <%= selectedStatus === 'transferred' ? 'selected' : '' %>>Transferred</option>
+      <option value="resigned" <%= selectedStatus === 'resigned' ? 'selected' : '' %>>Resigned</option>
+      <option value="terminated" <%= selectedStatus === 'terminated' ? 'selected' : '' %>>Terminated</option>
     </select>
     <button type="submit">Apply</button>
     <a href="/employees">Reset</a>
@@ -34,22 +34,18 @@
           <tr>
             <td colspan="6">No employees found.</td>
           </tr>
+        <% } else { %>
+          <% employees.forEach((employee) => { %>
+            <tr>
+              <td><%= employee.full_name %></td>
+              <td><%= employee.position_title || '-' %></td>
+              <td><%= employee.department_name || '-' %></td>
+              <td><%= employee.employment_status || '-' %></td>
+              <td><%= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-GB') : '-' %></td>
+              <td><a href="/employees/<%= employee.employee_id %>">View</a></td>
+            </tr>
+          <% }) %>
         <% } %>
-
-        <% employees.forEach(employee => { %>
-          <tr>
-            <td><%= employee.full_name %></td>
-            <td><%= employee.position_title || '-' %></td>
-            <td><%= employee.department_name || '-' %></td>
-            <td><%= employee.employment_status || '-' %></td>
-            <td>
-              <%= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-GB') : '-' %>
-            </td>
-            <td>
-              <a href="/employees/<%= employee.employee_id %>">View</a>
-            </td>
-          </tr>
-        <% }) %>
       </tbody>
     </table>
   </div>
