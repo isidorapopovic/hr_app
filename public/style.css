@@ -1416,3 +1416,145 @@ a {
     }
 
 
+.page-shell {
+    max-width: 1220px;
+    margin: 48px auto 72px;
+    padding: 0 24px;
+}
+
+.insight-layout-card {
+    background: #ffffff;
+    border: 1px solid #d8e0ec;
+    border-radius: 24px;
+    padding: 28px 26px 32px;
+}
+
+.page-heading-block h1 {
+    margin: 0 0 10px;
+    font-size: 3rem;
+    color: #071a4b;
+}
+
+.page-heading-block p {
+    margin: 0;
+    color: #2f426d;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 24px 0 28px;
+}
+
+.stat-card,
+.table-card,
+.empty-state-card,
+.department-card {
+    background: #ffffff;
+    border: 1px solid #d8e0ec;
+    border-radius: 20px;
+}
+
+.stat-card {
+    padding: 22px;
+}
+
+.stat-label {
+    display: block;
+    margin-bottom: 14px;
+    color: #5d6f95;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 2.3rem;
+    font-weight: 800;
+    color: #071a4b;
+}
+
+.content-section {
+    margin-top: 24px;
+}
+
+.section-header-row h2 {
+    margin: 0 0 14px;
+    font-size: 2rem;
+    color: #071a4b;
+}
+
+.table-card {
+    overflow-x: auto;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .dashboard-table thead th {
+        padding: 18px 16px;
+        border-bottom: 1px solid #d8e0ec;
+        text-align: left;
+        color: #5d6f95;
+        text-transform: uppercase;
+        font-size: 0.95rem;
+    }
+
+    .dashboard-table tbody td {
+        padding: 16px;
+        border-bottom: 1px solid #e6ecf5;
+        color: #10234d;
+        vertical-align: top;
+    }
+
+    .dashboard-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+.department-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.department-card {
+    padding: 18px;
+}
+
+.department-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: #2147b7;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.empty-state-card {
+    padding: 20px 22px;
+}
+
+@media (max-width: 1100px) {
+    .stats-grid,
+    .department-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .stats-grid,
+    .department-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -15,6 +15,7 @@ const workloadRoutes = require('./routes/workload');
 const organisationRoutes = require('./routes/organisation');
 const insightsRoutes = require('./routes/insights');
 const adminRoutes = require('./routes/admin');
+const burnoutPredictionRoutes = require('./routes/burnoutPrediction');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -25,6 +26,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use(
     session({
@@ -91,6 +93,7 @@ app.use('/workload', workloadRoutes);
 app.use('/organisation', organisationRoutes);
 app.use('/insights', insightsRoutes);
 app.use('/admin', adminRoutes);
+app.use('/burnout-prediction', burnoutPredictionRoutes);
 
 // 404 page
 app.use((req, res) => {

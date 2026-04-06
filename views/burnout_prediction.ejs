@@ -1,0 +1,150 @@
+<%- include('partials/header', { title: 'Burnout Prediction', activePage: 'burnout-prediction', isLoggedIn: isLoggedIn }) %>
+
+<section class="page-shell">
+  <div class="insight-layout-card">
+    <div class="page-heading-block">
+      <h1>Burnout Prediction</h1>
+      <p>Early-warning risk scoring based on workload, project concurrency, deadlines, manager span, and recent change signals.</p>
+    </div>
+
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Employees analysed</span>
+        <strong class="stat-value"><%= summary.totalEmployees %></strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">High risk</span>
+        <strong class="stat-value"><%= summary.highRiskEmployees %></strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">Medium risk</span>
+        <strong class="stat-value"><%= summary.mediumRiskEmployees %></strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">Average score</span>
+        <strong class="stat-value"><%= summary.avgScore %></strong>
+      </article>
+    </div>
+
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Recommended follow-up</h2>
+      </div>
+
+      <% if (!recommendations || recommendations.length === 0) { %>
+        <div class="empty-state-card">
+          <p>No urgent recommendations at the moment.</p>
+        </div>
+      <% } else { %>
+        <div class="department-grid">
+          <% recommendations.forEach((item) => { %>
+            <article class="department-card">
+              <div class="department-card-header">
+                <h3><%= item.title %></h3>
+                <span class="status-pill"><%= item.severity %></span>
+              </div>
+              <p><%= item.message %></p>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Employee risk scores</h2>
+      </div>
+
+      <% if (!employees || employees.length === 0) { %>
+        <div class="empty-state-card">
+          <p>No active employee data available.</p>
+        </div>
+      <% } else { %>
+        <div class="table-card">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th>Workload</th>
+                <th>Projects</th>
+                <th>Urgent</th>
+                <th>Delayed</th>
+                <th>Manager span</th>
+                <th>Score</th>
+                <th>Risk</th>
+                <th>Main reasons</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% employees.forEach((employee) => { %>
+                <tr>
+                  <td><%= employee.full_name %></td>
+                  <td><%= employee.department_name || '-' %></td>
+                  <td><%= employee.job_title || '-' %></td>
+                  <td><%= employee.workload_percent || 0 %>%</td>
+                  <td><%= employee.project_count || 0 %></td>
+                  <td><%= employee.urgent_projects || 0 %></td>
+                  <td><%= employee.delayed_projects || 0 %></td>
+                  <td><%= employee.manager_span || 0 %></td>
+                  <td><strong><%= employee.burnout_score %></strong></td>
+                  <td><span class="status-pill"><%= employee.burnout_risk %></span></td>
+                  <td><%= employee.top_reasons && employee.top_reasons.length ? employee.top_reasons.join(', ') : '-' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Team hotspots</h2>
+      </div>
+
+      <% if (!teams || teams.length === 0) { %>
+        <div class="empty-state-card">
+          <p>No department risk summary available.</p>
+        </div>
+      <% } else { %>
+        <div class="table-card">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th>Employees</th>
+                <th>High risk</th>
+                <th>Average score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% teams.forEach((team) => { %>
+                <tr>
+                  <td><%= team.department_name %></td>
+                  <td><%= team.employee_count %></td>
+                  <td><%= team.high_risk_count %></td>
+                  <td><%= team.avg_score %></td>
+                  <td><span class="status-pill"><%= team.status %></span></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="content-section">
+      <div class="empty-state-card">
+        <p><strong>Note:</strong> this page is a rules-based burnout risk score, not a validated machine-learning prediction model yet.</p>
+      </div>
+    </section>
+  </div>
+</section>
+
+<%- include('partials/footer') %>
