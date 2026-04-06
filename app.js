@@ -27,7 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
 app.use(
     session({
         secret: process.env.SESSION_SECRET || 'change_this_secret',
@@ -47,7 +46,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// first screen
+// welcome / splash page
 app.get('/', (req, res) => {
     res.render('welcome');
 });
@@ -82,8 +81,10 @@ app.get('/home', async (req, res) => {
     });
 });
 
-// routes
+// auth routes
 app.use('/', authRoutes);
+
+// feature routes
 app.use('/dashboard', dashboardRoutes);
 app.use('/departments', departmentsRoutes);
 app.use('/jobs', jobsRoutes);
@@ -92,8 +93,8 @@ app.use('/employees', employeesRoutes);
 app.use('/workload', workloadRoutes);
 app.use('/organisation', organisationRoutes);
 app.use('/insights', insightsRoutes);
-app.use('/admin', adminRoutes);
 app.use('/burnout-prediction', burnoutPredictionRoutes);
+app.use('/admin', adminRoutes);
 
 // 404 page
 app.use((req, res) => {
