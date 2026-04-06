@@ -106,9 +106,9 @@ router.get('/:id', requireLogin, async (req, res) => {
       SELECT p.position_id, p.position_title, d.department_name
       FROM positions p
       LEFT JOIN departments d ON p.department_id = d.department_id
-      WHERE p.is_active = true
+      WHERE p.is_active = 1
       ORDER BY p.position_title
-    `);
+      `);
 
         const managers = await db.all(
             `
