@@ -1,78 +1,105 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
-<div class="container">
-  <section class="page-head">
-    <a href="/employees" class="back-link">Back to Employees</a>
-    <h1><%= employee.full_name %></h1>
-    <p class="page-subtitle">Employee profile and work information.</p>
-  </section>
+<p><a href="/employees">Back to Employees</a></p>
 
-  <section class="stats-grid detail-stats">
-    <div class="stat-box">
-      <span class="stat-label">Department</span>
-      <strong class="stat-value employee-stat-text"><%= employee.department_name || '-' %></strong>
-    </div>
+<h1><%= employee.full_name %></h1>
+<p>Employee profile and work information.</p>
 
-    <div class="stat-box">
-      <span class="stat-label">Position</span>
-      <strong class="stat-value employee-stat-text"><%= employee.position_title || '-' %></strong>
-    </div>
+<p><strong>Department:</strong> <%= employee.department_name || '-' %></p>
+<p><strong>Position:</strong> <%= employee.position_title || '-' %></p>
+<p><strong>Reporting Manager:</strong> <%= employee.reporting_manager_name || '-' %></p>
+<p><strong>Workload:</strong> <%= employee.workload_percent || 0 %>%</p>
+<p><strong>Status:</strong> <%= employee.employment_status || '-' %></p>
 
-    <div class="stat-box">
-      <span class="stat-label">Workload</span>
-      <strong class="stat-value"><%= employee.workload_percent || 0 %>%</strong>
-    </div>
+<h2>Employee Details</h2>
+<p><strong>Full name:</strong> <%= employee.full_name %></p>
+<p><strong>Email:</strong> <%= employee.email || '-' %></p>
+<p><strong>Department:</strong> <%= employee.department_name || '-' %></p>
+<p><strong>Position:</strong> <%= employee.position_title || '-' %></p>
+<p><strong>Hire date:</strong> <%= employee.hire_date || '-' %></p>
+<p><strong>End date:</strong> <%= employee.end_date || '-' %></p>
+<p><strong>Employment status:</strong> <%= employee.employment_status || '-' %></p>
+<p><strong>Workload:</strong> <%= employee.workload_percent || 0 %>%</p>
 
-    <div class="stat-box">
-      <span class="stat-label">Status</span>
-      <strong class="stat-value employee-stat-text"><%= employee.employment_status || '-' %></strong>
-    </div>
-  </section>
+<h2>Update reporting manager</h2>
+<form method="POST" action="/employees/<%= employee.employee_id %>/manager">
+  <label for="reporting_manager_id">Reporting manager</label>
+  <select id="reporting_manager_id" name="reporting_manager_id">
+    <option value="">No manager</option>
+    <% managers.forEach((manager) => { %>
+      <option
+        value="<%= manager.employee_id %>"
+        <%= String(employee.reporting_manager_id || '') === String(manager.employee_id) ? 'selected' : '' %>
+      >
+        <%= manager.full_name %><%= manager.position_title ? ' - ' + manager.position_title : '' %>
+      </option>
+    <% }) %>
+  </select>
+  <button type="submit">Save manager</button>
+</form>
 
-  <section class="content-card">
-    <div class="projects-header">
-      <h2>Employee Details</h2>
-    </div>
+<h2>Update status</h2>
+<form method="POST" action="/employees/<%= employee.employee_id %>/status">
+  <label for="employment_status">Status</label>
+  <select id="employment_status" name="employment_status">
+    <% statuses.forEach((status) => { %>
+      <option value="<%= status %>" <%= employee.employment_status === status ? 'selected' : '' %>>
+        <%= status %>
+      </option>
+    <% }) %>
+  </select>
 
-    <div class="table-wrap">
-      <table class="overview-table">
-        <tbody>
-          <tr>
-            <th>Full name</th>
-            <td><%= employee.full_name %></td>
-          </tr>
-          <tr>
-            <th>Email</th>
-            <td><%= employee.email || '-' %></td>
-          </tr>
-          <tr>
-            <th>Department</th>
-            <td><%= employee.department_name || '-' %></td>
-          </tr>
-          <tr>
-            <th>Position</th>
-            <td><%= employee.position_title || '-' %></td>
-          </tr>
-          <tr>
-            <th>Hire date</th>
-            <td><%= employee.hire_date || '-' %></td>
-          </tr>
-          <tr>
-            <th>End date</th>
-            <td><%= employee.end_date || '-' %></td>
-          </tr>
-          <tr>
-            <th>Employment status</th>
-            <td><%= employee.employment_status || '-' %></td>
-          </tr>
-          <tr>
-            <th>Workload</th>
-            <td><%= employee.workload_percent || 0 %>%</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-</div>
+  <label for="status_notes">Notes</label>
+  <textarea id="status_notes" name="notes" rows="3"></textarea>
+
+  <button type="submit">Save status</button>
+</form>
+
+<h2>Change position</h2>
+<form method="POST" action="/employees/<%= employee.employee_id %>/position">
+  <label for="new_position_id">New position</label>
+  <select id="new_position_id" name="new_position_id">
+    <% positions.forEach((position) => { %>
+      <option value="<%= position.position_id %>" <%= String(employee.position_id) === String(position.position_id) ? 'selected' : '' %>>
+        <%= position.position_title %> - <%= position.department_name || 'Unassigned' %>
+      </option>
+    <% }) %>
+  </select>
+
+  <label for="position_notes">Notes</label>
+  <textarea id="position_notes" name="notes" rows="3"></textarea>
+
+  <button type="submit">Save position</button>
+</form>
+
+<h2>Employee timeline</h2>
+<% if (!actions || actions.length === 0) { %>
+  <p>No timeline entries yet.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Action</th>
+        <th>Old status</th>
+        <th>New status</th>
+        <th>Performed by</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% actions.forEach((action) => { %>
+        <tr>
+          <td><%= action.action_date || '-' %></td>
+          <td><%= action.action_type || '-' %></td>
+          <td><%= action.old_status || '-' %></td>
+          <td><%= action.new_status || '-' %></td>
+          <td><%= action.performed_by || '-' %></td>
+          <td><%= action.notes || '-' %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
 
 <%- include('partials/footer') %>

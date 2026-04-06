@@ -1,4 +1,4 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
 <section class="card small-card">
   <h2>Add Applicant</h2>
@@ -21,8 +21,24 @@
     <select name="position_id">
       <option value="">Select position</option>
       <% positions.forEach(position => { %>
-        <option value="<%= position.position_id %>" <%= String(formData.position_id || '') === String(position.position_id) ? 'selected' : '' %>>
+        <option
+          value="<%= position.position_id %>"
+          <%= String(formData.position_id || '') === String(position.position_id) ? 'selected' : '' %>
+        >
           <%= position.position_title %> - <%= position.department_name || 'Unassigned' %>
+        </option>
+      <% }) %>
+    </select>
+
+    <label>Hiring manager</label>
+    <select name="hiring_manager_id">
+      <option value="">Select hiring manager</option>
+      <% managers.forEach(manager => { %>
+        <option
+          value="<%= manager.employee_id %>"
+          <%= String(formData.hiring_manager_id || '') === String(manager.employee_id) ? 'selected' : '' %>
+        >
+          <%= manager.full_name %><%= manager.position_title ? ' - ' + manager.position_title : '' %>
         </option>
       <% }) %>
     </select>
@@ -30,7 +46,9 @@
     <label>Status</label>
     <select name="application_status">
       <% ['applied', 'in_review', 'interview', 'offered', 'rejected', 'withdrawn', 'hired'].forEach(status => { %>
-        <option value="<%= status %>" <%= (formData.application_status || 'applied') === status ? 'selected' : '' %>><%= status %></option>
+        <option value="<%= status %>" <%= (formData.application_status || 'applied') === status ? 'selected' : '' %>>
+          <%= status %>
+        </option>
       <% }) %>
     </select>
 

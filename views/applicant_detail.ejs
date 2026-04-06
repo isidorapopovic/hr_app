@@ -1,68 +1,83 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header') %>
 
-<section class="card">
-  <h2><%= applicant.full_name %></h2>
-  <p><strong>Applied for:</strong> <%= applicant.position_title || '-' %></p>
-  <p><strong>Department:</strong> <%= applicant.department_name || '-' %></p>
-  <p><strong>Status:</strong> <%= applicant.application_status %></p>
-  <p><strong>Experience:</strong> <%= applicant.years_experience %> years</p>
-  <p><strong>Current/Last Position:</strong> <%= applicant.current_or_last_position || '-' %></p>
-  <p><strong>Applied at:</strong> <%= applicant.applied_at %></p>
-  <p><strong>Notes:</strong> <%= applicant.notes || '-' %></p>
-</section>
+<h2><%= applicant.full_name %></h2>
 
-<section class="card">
-  <h3>Update status</h3>
-  <form method="POST" action="/applicants/<%= applicant.applicant_id %>/status" class="form-grid">
-    <label>New status</label>
-    <select name="new_status">
-      <% ['applied', 'in_review', 'interview', 'offered', 'rejected', 'withdrawn', 'hired'].forEach(status => { %>
-        <option value="<%= status %>" <%= applicant.application_status === status ? 'selected' : '' %>><%= status %></option>
-      <% }) %>
-    </select>
+<p><strong>Applied for:</strong> <%= applicant.position_title || '-' %></p>
+<p><strong>Department:</strong> <%= applicant.department_name || '-' %></p>
+<p><strong>Status:</strong> <%= applicant.application_status %></p>
+<p><strong>Experience:</strong> <%= applicant.years_experience %> years</p>
+<p><strong>Current/Last Position:</strong> <%= applicant.current_or_last_position || '-' %></p>
+<p><strong>Hiring Manager:</strong> <%= applicant.hiring_manager_name || '-' %></p>
+<p><strong>Applied at:</strong> <%= applicant.applied_at %></p>
+<p><strong>Notes:</strong> <%= applicant.notes || '-' %></p>
 
-    <label>Notes</label>
-    <textarea name="notes" rows="3"></textarea>
+<h3>Update hiring manager</h3>
+<form method="POST" action="/applicants/<%= applicant.applicant_id %>/manager">
+  <label for="hiring_manager_id">Hiring manager</label>
+  <select id="hiring_manager_id" name="hiring_manager_id">
+    <option value="">No hiring manager</option>
+    <% managers.forEach(manager => { %>
+      <option
+        value="<%= manager.employee_id %>"
+        <%= String(applicant.hiring_manager_id || '') === String(manager.employee_id) ? 'selected' : '' %>
+      >
+        <%= manager.full_name %><%= manager.position_title ? ' - ' + manager.position_title : '' %>
+      </option>
+    <% }) %>
+  </select>
+  <button type="submit">Save manager</button>
+</form>
 
-    <button type="submit">Save status</button>
-  </form>
-</section>
+<h3>Update status</h3>
+<form method="POST" action="/applicants/<%= applicant.applicant_id %>/status">
+  <label for="new_status">New status</label>
+  <select id="new_status" name="new_status">
+    <% statuses.forEach(status => { %>
+      <option value="<%= status %>" <%= applicant.application_status === status ? 'selected' : '' %>>
+        <%= status %>
+      </option>
+    <% }) %>
+  </select>
 
-<section class="card">
-  <h3>Hire applicant</h3>
-  <form method="POST" action="/applicants/<%= applicant.applicant_id %>/hire">
-    <button type="submit">Hire and create employee record</button>
-  </form>
-</section>
+  <label for="status_notes">Notes</label>
+  <textarea id="status_notes" name="notes" rows="3"></textarea>
 
-<section class="card">
-  <h3>Applicant timeline</h3>
-  <div class="table-wrap">
-    <table>
-      <thead>
+  <button type="submit">Save status</button>
+</form>
+
+<h3>Hire applicant</h3>
+<form method="POST" action="/applicants/<%= applicant.applicant_id %>/hire">
+  <button type="submit">Hire and create employee record</button>
+</form>
+
+<h3>Applicant timeline</h3>
+<% if (!actions.length) { %>
+  <p>No timeline entries yet.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Action</th>
+        <th>Old status</th>
+        <th>New status</th>
+        <th>Performed by</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% actions.forEach(action => { %>
         <tr>
-          <th>Date</th>
-          <th>Action</th>
-          <th>Old status</th>
-          <th>New status</th>
-          <th>Performed by</th>
-          <th>Notes</th>
+          <td><%= action.action_date || '-' %></td>
+          <td><%= action.action_type || '-' %></td>
+          <td><%= action.old_status || '-' %></td>
+          <td><%= action.new_status || '-' %></td>
+          <td><%= action.performed_by || '-' %></td>
+          <td><%= action.notes || '-' %></td>
         </tr>
-      </thead>
-      <tbody>
-        <% actions.forEach(action => { %>
-          <tr>
-            <td><%= action.action_date || '-' %></td>
-            <td><%= action.action_type || '-' %></td>
-            <td><%= action.old_status || '-' %></td>
-            <td><%= action.new_status || '-' %></td>
-            <td><%= action.performed_by || '-' %></td>
-            <td><%= action.notes || '-' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-</section>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
 
 <%- include('partials/footer') %>

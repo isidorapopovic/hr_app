@@ -19,38 +19,41 @@ router.get('/', requireLogin, async (req, res) => {
 
     try {
         if (selectedStatus && APPLICANT_STATUSES.includes(selectedStatus)) {
-            applicants = await db.all(`
-                SELECT
-                  a.applicant_id,
-                  a.full_name,
-                  a.application_status,
-                  a.applied_at,
-                  p.position_title,
-                  d.department_name
-                FROM applicants a
-                LEFT JOIN positions p
-                  ON a.position_id = p.position_id
-                LEFT JOIN departments d
-                  ON p.department_id = d.department_id
-                WHERE a.application_status = $1
-                ORDER BY a.applied_at DESC, a.full_name
-            `, [selectedStatus]);
+            applicants = await db.all(
+                `
+        SELECT
+          a.applicant_id,
+          a.full_name,
+          a.application_status,
+          a.applied_at,
+          p.position_title,
+          d.department_name,
+          hm.full_name AS hiring_manager_name
+        FROM applicants a
+        LEFT JOIN positions p ON a.position_id = p.position_id
+        LEFT JOIN departments d ON p.department_id = d.department_id
+        LEFT JOIN employees hm ON a.hiring_manager_id = hm.employee_id
+        WHERE a.application_status = $1
+        ORDER BY a.applied_at DESC, a.full_name
+        `,
+                [selectedStatus]
+            );
         } else {
             applicants = await db.all(`
-                SELECT
-                  a.applicant_id,
-                  a.full_name,
-                  a.application_status,
-                  a.applied_at,
-                  p.position_title,
-                  d.department_name
-                FROM applicants a
-                LEFT JOIN positions p
-                  ON a.position_id = p.position_id
-                LEFT JOIN departments d
-                  ON p.department_id = d.department_id
-                ORDER BY a.applied_at DESC, a.full_name
-            `);
+        SELECT
+          a.applicant_id,
+          a.full_name,
+          a.application_status,
+          a.applied_at,
+          p.position_title,
+          d.department_name,
+          hm.full_name AS hiring_manager_name
+        FROM applicants a
+        LEFT JOIN positions p ON a.position_id = p.position_id
+        LEFT JOIN departments d ON p.department_id = d.department_id
+        LEFT JOIN employees hm ON a.hiring_manager_id = hm.employee_id
+        ORDER BY a.applied_at DESC, a.full_name
+      `);
         }
     } catch (err) {
         console.error('Applicants query error:', err.message);
@@ -68,21 +71,26 @@ router.get('/', requireLogin, async (req, res) => {
 
 router.get('/new', requireLogin, async (req, res) => {
     let positions = [];
+    let managers = [];
 
     try {
         positions = await db.all(`
-            SELECT
-              p.position_id,
-              p.position_title,
-              d.department_name
-            FROM positions p
-            LEFT JOIN departments d
-              ON p.department_id = d.department_id
-            WHERE p.is_active = 1
-            ORDER BY p.position_title
-        `);
+      SELECT p.position_id, p.position_title, d.department_name
+      FROM positions p
+      LEFT JOIN departments d ON p.department_id = d.department_id
+      WHERE p.is_active = 1
+      ORDER BY p.position_title
+    `);
+
+        managers = await db.all(`
+      SELECT e.employee_id, e.full_name, p.position_title
+      FROM employees e
+      LEFT JOIN positions p ON e.position_id = p.position_id
+      WHERE e.employment_status = 'active'
+      ORDER BY e.full_name
+    `);
     } catch (err) {
-        console.error('Applicant form positions error:', err.message);
+        console.error('Applicant form data error:', err.message);
         return res.status(500).send(`Applicant form error: ${err.message}`);
     }
 
@@ -90,6 +98,7 @@ router.get('/new', requireLogin, async (req, res) => {
         activePage: 'applicants',
         isLoggedIn: true,
         positions,
+        managers,
         error: null,
         formData: {},
         statuses: APPLICANT_STATUSES
@@ -102,30 +111,37 @@ router.post('/new', requireLogin, async (req, res) => {
         years_experience,
         current_or_last_position,
         position_id,
+        hiring_manager_id,
         application_status,
         notes
     } = req.body;
 
     let positions = [];
+    let managers = [];
 
     try {
         positions = await db.all(`
-            SELECT
-              p.position_id,
-              p.position_title,
-              d.department_name
-            FROM positions p
-            LEFT JOIN departments d
-              ON p.department_id = d.department_id
-            WHERE p.is_active = 1
-            ORDER BY p.position_title
-        `);
+      SELECT p.position_id, p.position_title, d.department_name
+      FROM positions p
+      LEFT JOIN departments d ON p.department_id = d.department_id
+      WHERE p.is_active = 1
+      ORDER BY p.position_title
+    `);
+
+        managers = await db.all(`
+      SELECT e.employee_id, e.full_name, p.position_title
+      FROM employees e
+      LEFT JOIN positions p ON e.position_id = p.position_id
+      WHERE e.employment_status = 'active'
+      ORDER BY e.full_name
+    `);
 
         if (!full_name) {
             return res.render('applicant_form', {
                 activePage: 'applicants',
                 isLoggedIn: true,
                 positions,
+                managers,
                 error: 'Full name is required.',
                 formData: req.body,
                 statuses: APPLICANT_STATUSES
@@ -136,43 +152,46 @@ router.post('/new', requireLogin, async (req, res) => {
             ? application_status
             : 'applied';
 
-        const insertApplicantResult = await db.run(`
-            INSERT INTO applicants (
-              full_name,
-              years_experience,
-              current_or_last_position,
-              position_id,
-              application_status,
-              notes
-            )
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING applicant_id
-        `, [
-            full_name,
-            Number(years_experience || 0),
-            current_or_last_position || null,
-            position_id ? Number(position_id) : null,
-            safeStatus,
-            notes || null
-        ]);
+        const insertApplicantResult = await db.run(
+            `
+      INSERT INTO applicants (
+        full_name,
+        years_experience,
+        current_or_last_position,
+        position_id,
+        hiring_manager_id,
+        application_status,
+        notes
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING applicant_id
+      `,
+            [
+                full_name,
+                Number(years_experience || 0),
+                current_or_last_position || null,
+                position_id ? Number(position_id) : null,
+                hiring_manager_id ? Number(hiring_manager_id) : null,
+                safeStatus,
+                notes || null
+            ]
+        );
 
         const newApplicantId = insertApplicantResult.rows[0].applicant_id;
 
-        await db.run(`
-            INSERT INTO actions (
-              applicant_id,
-              action_type,
-              new_status,
-              performed_by,
-              notes
-            )
-            VALUES ($1, 'applicant_arrived', $2, $3, $4)
-        `, [
-            newApplicantId,
-            safeStatus,
-            'HR Admin',
-            'Applicant created'
-        ]);
+        await db.run(
+            `
+      INSERT INTO actions (
+        applicant_id,
+        action_type,
+        new_status,
+        performed_by,
+        notes
+      )
+      VALUES ($1, 'applicant_arrived', $2, $3, $4)
+      `,
+            [newApplicantId, safeStatus, 'HR Admin', 'Applicant created']
+        );
 
         res.redirect('/applicants');
     } catch (err) {
@@ -185,41 +204,50 @@ router.get('/:id', requireLogin, async (req, res) => {
     const { id } = req.params;
 
     try {
-        const applicant = await db.get(`
-            SELECT
-              a.*,
-              p.position_title,
-              d.department_name
-            FROM applicants a
-            LEFT JOIN positions p
-              ON a.position_id = p.position_id
-            LEFT JOIN departments d
-              ON p.department_id = d.department_id
-            WHERE a.applicant_id = $1
-        `, [id]);
+        const applicant = await db.get(
+            `
+      SELECT
+        a.*,
+        p.position_title,
+        d.department_name,
+        hm.full_name AS hiring_manager_name
+      FROM applicants a
+      LEFT JOIN positions p ON a.position_id = p.position_id
+      LEFT JOIN departments d ON p.department_id = d.department_id
+      LEFT JOIN employees hm ON a.hiring_manager_id = hm.employee_id
+      WHERE a.applicant_id = $1
+      `,
+            [id]
+        );
 
         if (!applicant) {
             return res.status(404).send('Applicant not found');
         }
 
-        const actions = await db.all(`
-            SELECT
-              action_date,
-              action_type,
-              old_status,
-              new_status,
-              performed_by,
-              notes
-            FROM actions
-            WHERE applicant_id = $1
-            ORDER BY action_date DESC, action_id DESC
-        `, [id]);
+        const actions = await db.all(
+            `
+      SELECT action_date, action_type, old_status, new_status, performed_by, notes
+      FROM actions
+      WHERE applicant_id = $1
+      ORDER BY action_date DESC, action_id DESC
+      `,
+            [id]
+        );
+
+        const managers = await db.all(`
+      SELECT e.employee_id, e.full_name, p.position_title
+      FROM employees e
+      LEFT JOIN positions p ON e.position_id = p.position_id
+      WHERE e.employment_status = 'active'
+      ORDER BY e.full_name
+    `);
 
         res.render('applicant_detail', {
             activePage: 'applicants',
             isLoggedIn: true,
             applicant,
             actions,
+            managers,
             statuses: APPLICANT_STATUSES
         });
     } catch (err) {
@@ -233,11 +261,14 @@ router.post('/:id/status', requireLogin, async (req, res) => {
     const { new_status, notes } = req.body;
 
     try {
-        const applicant = await db.get(`
-            SELECT applicant_id, application_status
-            FROM applicants
-            WHERE applicant_id = $1
-        `, [id]);
+        const applicant = await db.get(
+            `
+      SELECT applicant_id, application_status
+      FROM applicants
+      WHERE applicant_id = $1
+      `,
+            [id]
+        );
 
         if (!applicant) {
             return res.status(404).send('Applicant not found');
@@ -247,29 +278,29 @@ router.post('/:id/status', requireLogin, async (req, res) => {
             return res.status(400).send('Invalid status');
         }
 
-        await db.run(`
-            UPDATE applicants
-            SET application_status = $1
-            WHERE applicant_id = $2
-        `, [new_status, id]);
+        await db.run(
+            `
+      UPDATE applicants
+      SET application_status = $1
+      WHERE applicant_id = $2
+      `,
+            [new_status, id]
+        );
 
-        await db.run(`
-            INSERT INTO actions (
-              applicant_id,
-              action_type,
-              old_status,
-              new_status,
-              performed_by,
-              notes
-            )
-            VALUES ($1, 'status_changed', $2, $3, $4, $5)
-        `, [
-            id,
-            applicant.application_status,
-            new_status,
-            'HR Admin',
-            notes || null
-        ]);
+        await db.run(
+            `
+      INSERT INTO actions (
+        applicant_id,
+        action_type,
+        old_status,
+        new_status,
+        performed_by,
+        notes
+      )
+      VALUES ($1, 'status_changed', $2, $3, $4, $5)
+      `,
+            [id, applicant.application_status, new_status, 'HR Admin', notes || null]
+        );
 
         res.redirect(`/applicants/${id}`);
     } catch (err) {
@@ -278,15 +309,63 @@ router.post('/:id/status', requireLogin, async (req, res) => {
     }
 });
 
+router.post('/:id/manager', requireLogin, async (req, res) => {
+    const { id } = req.params;
+    const { hiring_manager_id } = req.body;
+
+    try {
+        const applicant = await db.get(
+            `SELECT applicant_id FROM applicants WHERE applicant_id = $1`,
+            [id]
+        );
+
+        if (!applicant) {
+            return res.status(404).send('Applicant not found');
+        }
+
+        if (hiring_manager_id) {
+            const manager = await db.get(
+                `
+        SELECT employee_id
+        FROM employees
+        WHERE employee_id = $1 AND employment_status = 'active'
+        `,
+                [hiring_manager_id]
+            );
+
+            if (!manager) {
+                return res.status(400).send('Selected hiring manager is invalid.');
+            }
+        }
+
+        await db.run(
+            `
+      UPDATE applicants
+      SET hiring_manager_id = $1
+      WHERE applicant_id = $2
+      `,
+            [hiring_manager_id ? Number(hiring_manager_id) : null, id]
+        );
+
+        res.redirect(`/applicants/${id}`);
+    } catch (err) {
+        console.error('Applicant manager update error:', err.message);
+        res.status(500).send(`Applicant manager update error: ${err.message}`);
+    }
+});
+
 router.post('/:id/hire', requireLogin, async (req, res) => {
     const { id } = req.params;
 
     try {
-        const applicant = await db.get(`
-            SELECT applicant_id, full_name, position_id, application_status
-            FROM applicants
-            WHERE applicant_id = $1
-        `, [id]);
+        const applicant = await db.get(
+            `
+      SELECT applicant_id, full_name, position_id, application_status, hiring_manager_id
+      FROM applicants
+      WHERE applicant_id = $1
+      `,
+            [id]
+        );
 
         if (!applicant) {
             return res.status(404).send('Applicant not found');
@@ -296,70 +375,87 @@ router.post('/:id/hire', requireLogin, async (req, res) => {
             return res.status(400).send('Applicant must have a position before hiring.');
         }
 
-        const existingEmployee = await db.get(`
-            SELECT employee_id
-            FROM employees
-            WHERE applicant_id = $1
-        `, [id]);
+        const existingEmployee = await db.get(
+            `
+      SELECT employee_id
+      FROM employees
+      WHERE applicant_id = $1
+      `,
+            [id]
+        );
 
         if (existingEmployee) {
             return res.redirect(`/employees/${existingEmployee.employee_id}`);
         }
 
-        await db.run(`
-            UPDATE applicants
-            SET application_status = 'hired'
-            WHERE applicant_id = $1
-        `, [id]);
+        await db.run(
+            `
+      UPDATE applicants
+      SET application_status = 'hired'
+      WHERE applicant_id = $1
+      `,
+            [id]
+        );
 
-        const position = await db.get(`
-            SELECT position_id, department_id
-            FROM positions
-            WHERE position_id = $1
-        `, [applicant.position_id]);
+        const position = await db.get(
+            `
+      SELECT position_id, department_id
+      FROM positions
+      WHERE position_id = $1
+      `,
+            [applicant.position_id]
+        );
 
         if (!position) {
             return res.status(400).send('Applicant position not found.');
         }
 
-        const employeeInsertResult = await db.run(`
-            INSERT INTO employees (
-              applicant_id,
-              full_name,
-              department_id,
-              position_id,
-              hire_date,
-              employment_status
-            )
-            VALUES ($1, $2, $3, $4, CURRENT_DATE, 'active')
-            RETURNING employee_id
-        `, [
-            applicant.applicant_id,
-            applicant.full_name,
-            position.department_id,
-            applicant.position_id
-        ]);
+        const employeeInsertResult = await db.run(
+            `
+      INSERT INTO employees (
+        applicant_id,
+        full_name,
+        department_id,
+        position_id,
+        reporting_manager_id,
+        hire_date,
+        employment_status
+      )
+      VALUES ($1, $2, $3, $4, $5, CURRENT_DATE, 'active')
+      RETURNING employee_id
+      `,
+            [
+                applicant.applicant_id,
+                applicant.full_name,
+                position.department_id,
+                applicant.position_id,
+                applicant.hiring_manager_id || null
+            ]
+        );
 
         const newEmployeeId = employeeInsertResult.rows[0].employee_id;
 
-        await db.run(`
-            INSERT INTO actions (
-              applicant_id,
-              employee_id,
-              action_type,
-              old_status,
-              new_status,
-              performed_by,
-              notes
-            )
-            VALUES ($1, $2, 'hired', $3, 'hired', $4, $5)
-        `, [
-            applicant.applicant_id,
-            newEmployeeId,
-            applicant.application_status,
-            'HR Admin',
-            'Applicant hired into employees table'
-        ]);
+        await db.run(
+            `
+      INSERT INTO actions (
+        applicant_id,
+        employee_id,
+        action_type,
+        old_status,
+        new_status,
+        performed_by,
+        notes
+      )
+      VALUES ($1, $2, 'hired', $3, 'hired', $4, $5)
+      `,
+            [
+                applicant.applicant_id,
+                newEmployeeId,
+                applicant.application_status,
+                'HR Admin',
+                'Applicant hired into employees table'
+            ]
+        );
 
         res.redirect(`/employees/${newEmployeeId}`);
     } catch (err) {

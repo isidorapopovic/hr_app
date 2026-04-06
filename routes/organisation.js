@@ -12,18 +12,17 @@ router.get('/', requireLogin, async (req, res) => {
         e.full_name,
         p.position_title AS job_title,
         COALESCE(e.department_id, p.department_id) AS department_id,
-        NULL AS manager_id,
+        e.reporting_manager_id AS manager_id,
         d.department_name
       FROM employees e
-      LEFT JOIN positions p
-        ON e.position_id = p.position_id
+      LEFT JOIN positions p ON e.position_id = p.position_id
       LEFT JOIN departments d
         ON COALESCE(e.department_id, p.department_id) = d.department_id
       WHERE e.employment_status = 'active'
       ORDER BY d.department_name, e.full_name
     `);
 
-        const hasManagerData = false;
+        const hasManagerData = employees.some((employee) => employee.manager_id !== null);
         const tree = buildOrgTree(employees, null);
 
         const departmentGroups = employees.reduce((acc, employee) => {

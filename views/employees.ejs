@@ -1,54 +1,50 @@
 <%- include('partials/header', { title: 'Employees', activePage: 'employees', isLoggedIn: isLoggedIn }) %>
 
-<div class="page-card">
-  <h1 class="section-title">Employees</h1>
+<h1>Employees</h1>
 
-  <form method="GET" action="/employees" class="filter-bar">
-    <label for="status">Filter by status</label>
-    <select name="status" id="status">
-      <option value="" <%= !selectedStatus ? 'selected' : '' %>>All</option>
-      <option value="active" <%= selectedStatus === 'active' ? 'selected' : '' %>>Active</option>
-      <option value="on_leave" <%= selectedStatus === 'on_leave' ? 'selected' : '' %>>On leave</option>
-      <option value="transferred" <%= selectedStatus === 'transferred' ? 'selected' : '' %>>Transferred</option>
-      <option value="resigned" <%= selectedStatus === 'resigned' ? 'selected' : '' %>>Resigned</option>
-      <option value="terminated" <%= selectedStatus === 'terminated' ? 'selected' : '' %>>Terminated</option>
-    </select>
-    <button type="submit">Apply</button>
-    <a href="/employees">Reset</a>
-  </form>
+<form method="GET" action="/employees">
+  <label for="status">Filter by status</label>
+  <select id="status" name="status">
+    <option value="">All</option>
+    <% statuses.forEach((status) => { %>
+      <option value="<%= status %>" <%= selectedStatus === status ? 'selected' : '' %>>
+        <%= status %>
+      </option>
+    <% }) %>
+  </select>
+  <button type="submit">Apply</button>
+  <a href="/employees">Reset</a>
+</form>
 
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
+<% if (!employees || employees.length === 0) { %>
+  <p>No employees found.</p>
+<% } else { %>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Position</th>
+        <th>Department</th>
+        <th>Reporting manager</th>
+        <th>Status</th>
+        <th>Hire date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% employees.forEach((employee) => { %>
         <tr>
-          <th>Name</th>
-          <th>Position</th>
-          <th>Department</th>
-          <th>Status</th>
-          <th>Hire date</th>
-          <th></th>
+          <td><%= employee.full_name %></td>
+          <td><%= employee.position_title || '-' %></td>
+          <td><%= employee.department_name || '-' %></td>
+          <td><%= employee.reporting_manager_name || '-' %></td>
+          <td><%= employee.employment_status || '-' %></td>
+          <td><%= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-GB') : '-' %></td>
+          <td><a href="/employees/<%= employee.employee_id %>">View</a></td>
         </tr>
-      </thead>
-      <tbody>
-        <% if (!employees || employees.length === 0) { %>
-          <tr>
-            <td colspan="6">No employees found.</td>
-          </tr>
-        <% } else { %>
-          <% employees.forEach((employee) => { %>
-            <tr>
-              <td><%= employee.full_name %></td>
-              <td><%= employee.position_title || '-' %></td>
-              <td><%= employee.department_name || '-' %></td>
-              <td><%= employee.employment_status || '-' %></td>
-              <td><%= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-GB') : '-' %></td>
-              <td><a href="/employees/<%= employee.employee_id %>">View</a></td>
-            </tr>
-          <% }) %>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
-</div>
+      <% }) %>
+    </tbody>
+  </table>
+<% } %>
 
 <%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>

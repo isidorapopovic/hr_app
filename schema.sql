@@ -28,6 +28,7 @@ CREATE TABLE applicants (
   years_experience NUMERIC NOT NULL DEFAULT 0 CHECK (years_experience >= 0),
   current_or_last_position TEXT,
   position_id INTEGER REFERENCES positions(position_id),
+  hiring_manager_id INTEGER REFERENCES employees(employee_id),
   application_status TEXT NOT NULL DEFAULT 'applied' CHECK (
     application_status IN (
       'applied',
@@ -50,6 +51,7 @@ CREATE TABLE employees (
   email TEXT,
   department_id INTEGER REFERENCES departments(department_id),
   position_id INTEGER REFERENCES positions(position_id),
+  reporting_manager_id INTEGER REFERENCES employees(employee_id),
   hire_date DATE NOT NULL,
   employment_status TEXT NOT NULL DEFAULT 'active' CHECK (
     employment_status IN (
@@ -61,7 +63,9 @@ CREATE TABLE employees (
     )
   ),
   end_date DATE,
-  workload_percent INTEGER NOT NULL DEFAULT 0 CHECK (workload_percent >= 0 AND workload_percent <= 100),
+  workload_percent INTEGER NOT NULL DEFAULT 0 CHECK (
+    workload_percent >= 0 AND workload_percent <= 100
+  ),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
