@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title><%= typeof title !== 'undefined' ? `${title} | HR App` : 'HR App' %></title>
+  <title><%= typeof title !== 'undefined' ? `${title} | People Pulse` : 'People Pulse' %></title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <header class="site-header">
     <div class="container header-inner">
-      <a href="/" class="brand-block">
-        <div class="brand-kicker">HR OPERATIONS PLATFORM</div>
-        <div class="brand-name">HR App</div>
-        <div class="brand-tagline">Recruitment, workforce visibility, and internal HR workflows</div>
-      </a>
+      <div class="brand">
+        <a href="/" class="brand-logo-link">
+          <img src="/images/people-pulse.png" alt="People Pulse" class="brand-logo">
+        </a>
+        <p class="brand-tagline">Recruitment, workforce visibility, and internal HR workflows</p>
+      </div>
 
       <nav class="main-nav">
         <a href="/" class="<%= activePage === 'home' ? 'active' : '' %>">Home</a>

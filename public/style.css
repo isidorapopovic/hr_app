@@ -1261,3 +1261,53 @@ a {
         grid-template-columns: 1fr;
     }
 }
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.brand-logo-link {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.brand-logo {
+    display: block;
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+}
+
+.brand-tagline {
+    margin: 0;
+    color: #4b5f88;
+    font-size: 1.05rem;
+    line-height: 1.35;
+}
+.home-hero {
+    max-width: 1220px;
+    margin: 48px auto 24px;
+    padding: 0 24px;
+    text-align: left;
+}
+
+.home-hero-logo {
+    display: block;
+    max-width: 520px;
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.home-hero h1 {
+    margin: 0 0 12px;
+    font-size: 3rem;
+    color: #071a4b;
+}
+
+.home-hero p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #445983;
+}
