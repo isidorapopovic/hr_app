@@ -896,3 +896,329 @@ a {
     color: #5f6d86;
     font-weight: 700;
 }
+/* ===== Shared page card layout for Employees / Organisation ===== */
+
+.page-shell {
+    max-width: 1220px;
+    margin: 48px auto 72px;
+    padding: 0 24px;
+}
+
+.insight-layout-card {
+    background: #ffffff;
+    border: 1px solid #d8e0ec;
+    border-radius: 24px;
+    padding: 28px 26px 32px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.page-heading-block {
+    margin-bottom: 24px;
+}
+
+    .page-heading-block h1 {
+        margin: 0 0 10px;
+        font-size: 3rem;
+        line-height: 1.05;
+        color: #071a4b;
+    }
+
+    .page-heading-block p {
+        margin: 0;
+        font-size: 1.05rem;
+        color: #2f426d;
+    }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #d8e0ec;
+    border-radius: 20px;
+    padding: 22px 22px 18px;
+    min-height: 112px;
+}
+
+.stat-label {
+    display: block;
+    margin-bottom: 14px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #5d6f95;
+}
+
+.stat-value {
+    display: block;
+    font-size: 2.3rem;
+    line-height: 1;
+    font-weight: 800;
+    color: #071a4b;
+}
+
+.stat-value-small {
+    font-size: 1.5rem;
+    line-height: 1.2;
+}
+
+.content-section {
+    margin-top: 10px;
+}
+
+.section-header-row {
+    display: flex;
+    align-items: centre;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+    .section-header-row h2 {
+        margin: 0;
+        font-size: 2rem;
+        color: #071a4b;
+    }
+
+.toolbar-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.toolbar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .toolbar-group label {
+        font-weight: 600;
+        color: #243a67;
+    }
+
+    .toolbar-group select {
+        min-width: 220px;
+        height: 44px;
+        border: 1px solid #cfd8e6;
+        border-radius: 12px;
+        padding: 0 14px;
+        background: #ffffff;
+        font-size: 1rem;
+    }
+
+.toolbar-actions {
+    display: flex;
+    align-items: centre;
+    gap: 12px;
+}
+
+.btn-primary-soft {
+    height: 44px;
+    padding: 0 18px;
+    border: 1px solid #cfd8e6;
+    border-radius: 12px;
+    background: #eef3ff;
+    color: #2147b7;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-link-soft {
+    color: #2f57c0;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.table-card,
+.empty-state-card,
+.org-chart-card,
+.department-card {
+    background: #ffffff;
+    border: 1px solid #d8e0ec;
+    border-radius: 20px;
+}
+
+.table-card {
+    overflow-x: auto;
+}
+
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    .dashboard-table thead th {
+        padding: 18px 16px;
+        border-bottom: 1px solid #d8e0ec;
+        text-align: left;
+        font-size: 0.98rem;
+        letter-spacing: 0.03em;
+        color: #5d6f95;
+        text-transform: uppercase;
+    }
+
+    .dashboard-table tbody td {
+        padding: 18px 16px;
+        border-bottom: 1px solid #e6ecf5;
+        color: #10234d;
+        vertical-align: middle;
+    }
+
+    .dashboard-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+.compact-table thead th,
+.compact-table tbody td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+.table-link {
+    color: #2f57c0;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: centre;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #eef3ff;
+    color: #2147b7;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.empty-state-card {
+    padding: 20px 22px;
+}
+
+    .empty-state-card p {
+        margin: 0;
+        color: #32466f;
+    }
+
+.organisation-note {
+    margin-bottom: 20px;
+}
+
+.department-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.department-card {
+    padding: 18px;
+}
+
+.department-card-header {
+    display: flex;
+    align-items: centre;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+    .department-card-header h3 {
+        margin: 0;
+        font-size: 1.4rem;
+        color: #071a4b;
+    }
+
+.department-count {
+    color: #5d6f95;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.org-chart-card {
+    padding: 20px;
+}
+
+.org-tree-list {
+    display: grid;
+    gap: 14px;
+}
+
+.org-node-card {
+    border: 1px solid #d8e0ec;
+    border-radius: 18px;
+    padding: 16px 18px;
+    background: #f9fbff;
+}
+
+.org-node-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #071a4b;
+    margin-bottom: 6px;
+}
+
+.org-node-meta {
+    color: #445983;
+    margin-bottom: 4px;
+}
+
+.org-node-children {
+    margin-top: 14px;
+    margin-left: 20px;
+    padding-left: 16px;
+    border-left: 2px solid #d8e0ec;
+}
+
+@media (max-width: 1100px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .department-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .page-shell {
+        padding: 0 16px;
+    }
+
+    .insight-layout-card {
+        padding: 22px 18px 24px;
+        border-radius: 20px;
+    }
+
+    .page-heading-block h1 {
+        font-size: 2.35rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .toolbar-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .toolbar-actions {
+        justify-content: flex-start;
+    }
+
+    .section-header-row h2 {
+        font-size: 1.6rem;
+    }
+
+    .org-node-children {
+        margin-left: 10px;
+        padding-left: 12px;
+    }
+}

@@ -1,64 +1,112 @@
-<%- include('partials/header', { title: 'Organisation', activePage: 'organisation' }) %>
+<%- include('partials/header', { title: 'Organisation', activePage: 'organisation', isLoggedIn: isLoggedIn }) %>
 
 <%
 function renderTree(nodes) {
   if (!nodes || nodes.length === 0) return '';
-  let html = '<ul>';
+
+  let html = '<div class="org-tree-list">';
 
   nodes.forEach((node) => {
     html += `
-      <li>
-        <strong>${node.full_name || 'Unknown'}</strong><br>
-        ${node.job_title || 'No title'}<br>
-        ${node.department_name || 'Unassigned'}
-        ${renderTree(node.children || [])}
-      </li>
+      <div class="org-node-card">
+        <div class="org-node-name">${node.full_name || 'Unknown'}</div>
+        <div class="org-node-meta">${node.job_title || 'No title'}</div>
+        <div class="org-node-meta">${node.department_name || 'Unassigned'}</div>
+        ${node.children && node.children.length ? `<div class="org-node-children">${renderTree(node.children)}</div>` : ''}
+      </div>
     `;
   });
 
-  html += '</ul>';
+  html += '</div>';
   return html;
 }
 %>
 
-<h1>Organisation</h1>
-<p>Current team structure and department breakdown.</p>
+<section class="page-shell">
+  <div class="insight-layout-card">
+    <div class="page-heading-block">
+      <h1>Organisation</h1>
+      <p>Current team structure, reporting lines, and department breakdown.</p>
+    </div>
 
-<h3>Active employees</h3>
-<p><%= totalEmployees %></p>
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Active employees</span>
+        <strong class="stat-value"><%= totalEmployees %></strong>
+      </article>
 
-<h3>Departments</h3>
-<p><%= Object.keys(departmentGroups || {}).length %></p>
+      <article class="stat-card">
+        <span class="stat-label">Departments</span>
+        <strong class="stat-value"><%= Object.keys(departmentGroups || {}).length %></strong>
+      </article>
 
-<h3>Hierarchy mode</h3>
-<p><%= hasManagerData ? 'Enabled' : 'Grouped view' %></p>
+      <article class="stat-card">
+        <span class="stat-label">Hierarchy mode</span>
+        <strong class="stat-value stat-value-small"><%= hasManagerData ? 'Enabled' : 'Grouped view' %></strong>
+      </article>
 
-<% if (hasManagerData && tree && tree.length > 0) { %>
-  <h2>Organisation chart</h2>
-  <%- renderTree(tree) %>
-<% } else { %>
-  <h2>Department structure</h2>
-  <p>Manager relationships are not available yet for most employees, so employees are grouped by department.</p>
+      <article class="stat-card">
+        <span class="stat-label">Top-level managers</span>
+        <strong class="stat-value">
+          <%= tree && tree.length ? tree.length : 0 %>
+        </strong>
+      </article>
+    </div>
 
-  <% Object.keys(departmentGroups || {}).sort().forEach((departmentName) => { %>
-    <h3><%= departmentName %></h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Role</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% departmentGroups[departmentName].forEach((employee) => { %>
-          <tr>
-            <td><%= employee.full_name %></td>
-            <td><%= employee.job_title || '-' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  <% }) %>
-<% } %>
+    <% if (hasManagerData && tree && tree.length > 0) { %>
+      <section class="content-section">
+        <div class="section-header-row">
+          <h2>Organisation chart</h2>
+        </div>
 
-<%- include('partials/footer') %>
+        <div class="org-chart-card">
+          <%- renderTree(tree) %>
+        </div>
+      </section>
+    <% } else { %>
+      <section class="content-section">
+        <div class="section-header-row">
+          <h2>Department structure</h2>
+        </div>
+
+        <div class="empty-state-card organisation-note">
+          <p>Manager relationships are not available yet for most employees, so employees are grouped by department.</p>
+        </div>
+
+        <div class="department-grid">
+          <% Object.keys(departmentGroups || {}).sort().forEach((departmentName) => { %>
+            <section class="department-card">
+              <div class="department-card-header">
+                <h3><%= departmentName %></h3>
+                <span class="department-count">
+                  <%= departmentGroups[departmentName].length %> employee<%= departmentGroups[departmentName].length === 1 ? '' : 's' %>
+                </span>
+              </div>
+
+              <div class="table-card">
+                <table class="dashboard-table compact-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% departmentGroups[departmentName].forEach((employee) => { %>
+                      <tr>
+                        <td><%= employee.full_name %></td>
+                        <td><%= employee.job_title || '-' %></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          <% }) %>
+        </div>
+      </section>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>

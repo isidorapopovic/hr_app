@@ -1,50 +1,106 @@
 <%- include('partials/header', { title: 'Employees', activePage: 'employees', isLoggedIn: isLoggedIn }) %>
 
-<h1>Employees</h1>
+<section class="page-shell">
+  <div class="insight-layout-card">
+    <div class="page-heading-block">
+      <h1>Employees</h1>
+      <p>Overview of employee records, departments, reporting lines, and hire dates.</p>
+    </div>
 
-<form method="GET" action="/employees">
-  <label for="status">Filter by status</label>
-  <select id="status" name="status">
-    <option value="">All</option>
-    <% statuses.forEach((status) => { %>
-      <option value="<%= status %>" <%= selectedStatus === status ? 'selected' : '' %>>
-        <%= status %>
-      </option>
-    <% }) %>
-  </select>
-  <button type="submit">Apply</button>
-  <a href="/employees">Reset</a>
-</form>
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Total employees</span>
+        <strong class="stat-value"><%= employees ? employees.length : 0 %></strong>
+      </article>
 
-<% if (!employees || employees.length === 0) { %>
-  <p>No employees found.</p>
-<% } else { %>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Position</th>
-        <th>Department</th>
-        <th>Reporting manager</th>
-        <th>Status</th>
-        <th>Hire date</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% employees.forEach((employee) => { %>
-        <tr>
-          <td><%= employee.full_name %></td>
-          <td><%= employee.position_title || '-' %></td>
-          <td><%= employee.department_name || '-' %></td>
-          <td><%= employee.reporting_manager_name || '-' %></td>
-          <td><%= employee.employment_status || '-' %></td>
-          <td><%= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-GB') : '-' %></td>
-          <td><a href="/employees/<%= employee.employee_id %>">View</a></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-<% } %>
+      <article class="stat-card">
+        <span class="stat-label">Active employees</span>
+        <strong class="stat-value">
+          <%= (employees || []).filter(employee => employee.employment_status === 'active').length %>
+        </strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">Departments</span>
+        <strong class="stat-value">
+          <%= new Set((employees || []).map(employee => employee.department_name || 'Unassigned')).size %>
+        </strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">With manager set</span>
+        <strong class="stat-value">
+          <%= (employees || []).filter(employee => employee.reporting_manager_name).length %>
+        </strong>
+      </article>
+    </div>
+
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Employee directory</h2>
+      </div>
+
+      <form method="GET" action="/employees" class="toolbar-form">
+        <div class="toolbar-group">
+          <label for="status">Filter by status</label>
+          <select id="status" name="status">
+            <option value="">All</option>
+            <% statuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= selectedStatus === status ? 'selected' : '' %>>
+                <%= status %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="toolbar-actions">
+          <button type="submit" class="btn-primary-soft">Apply</button>
+          <a href="/employees" class="btn-link-soft">Reset</a>
+        </div>
+      </form>
+
+      <% if (!employees || employees.length === 0) { %>
+        <div class="empty-state-card">
+          <p>No employees found.</p>
+        </div>
+      <% } else { %>
+        <div class="table-card">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Department</th>
+                <th>Reporting manager</th>
+                <th>Status</th>
+                <th>Hire date</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% employees.forEach((employee) => { %>
+                <tr>
+                  <td><%= employee.full_name %></td>
+                  <td><%= employee.position_title || '-' %></td>
+                  <td><%= employee.department_name || '-' %></td>
+                  <td><%= employee.reporting_manager_name || '-' %></td>
+                  <td>
+                    <span class="status-pill"><%= employee.employment_status || '-' %></span>
+                  </td>
+                  <td>
+                    <%= employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-GB') : '-' %>
+                  </td>
+                  <td>
+                    <a href="/employees/<%= employee.employee_id %>" class="table-link">View</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+  </div>
+</section>
 
 <%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>
