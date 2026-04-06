@@ -1,104 +1,91 @@
 <%- include('partials/header', { title: 'Department Overview', activePage: 'departments', isLoggedIn: isLoggedIn }) %>
 
-<section class="page-head">
-  <a href="/departments" class="back-link">Back to Department Overview</a>
-  <h1><%= department.department_name %></h1>
-  <p class="page-subtitle">Department details, project timeline, and employees.</p>
-</section>
+<section class="page-shell">
+  <div class="insight-layout-card">
+    <div class="page-heading-block">
+      <h1>Department Overview</h1>
+      <p>Track departments, open positions, active projects, staffing, and workload.</p>
+    </div>
 
-<section class="stats-grid detail-stats">
-  <div class="stat-box">
-    <span class="stat-label">Open Positions</span>
-    <strong class="stat-value"><%= department.open_positions ?? 0 %></strong>
-  </div>
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Departments</span>
+        <strong class="stat-value"><%= departments ? departments.length : 0 %></strong>
+      </article>
 
-  <div class="stat-box">
-    <span class="stat-label">Projects</span>
-    <strong class="stat-value"><%= department.projects_count ?? 0 %></strong>
-  </div>
+      <article class="stat-card">
+        <span class="stat-label">Open positions</span>
+        <strong class="stat-value">
+          <%= (departments || []).reduce((sum, department) => sum + Number(department.open_positions || 0), 0) %>
+        </strong>
+      </article>
 
-  <div class="stat-box">
-    <span class="stat-label">People Assigned</span>
-    <strong class="stat-value"><%= department.people_assigned ?? 0 %></strong>
-  </div>
+      <article class="stat-card">
+        <span class="stat-label">Projects</span>
+        <strong class="stat-value">
+          <%= (departments || []).reduce((sum, department) => sum + Number(department.projects_count || 0), 0) %>
+        </strong>
+      </article>
 
-  <div class="stat-box">
-    <span class="stat-label">Average Workload</span>
-    <strong class="stat-value"><%= department.avg_workload ?? 0 %>%</strong>
-  </div>
-</section>
+      <article class="stat-card">
+        <span class="stat-label">Employees</span>
+        <strong class="stat-value">
+          <%= (departments || []).reduce((sum, department) => sum + Number(department.employees_count || 0), 0) %>
+        </strong>
+      </article>
+    </div>
 
-<section class="content-card">
-  <div class="projects-header">
-    <h2>Projects</h2>
-  </div>
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Departments</h2>
+      </div>
 
-  <div class="table-wrap">
-    <table class="overview-table">
-      <thead>
-        <tr>
-          <th>Project</th>
-          <th>Started</th>
-          <th>Ended</th>
-          <th>Deadline</th>
-          <th>Status</th>
-          <th>Assigned People</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (!projects || projects.length === 0) { %>
-          <tr>
-            <td colspan="6">No projects found.</td>
-          </tr>
-        <% } else { %>
-          <% projects.forEach(project => { %>
-            <tr>
-              <td><%= project.project_name %></td>
-              <td><%= project.start_date ? new Date(project.start_date).toLocaleDateString('en-GB') : '-' %></td>
-              <td><%= project.end_date ? new Date(project.end_date).toLocaleDateString('en-GB') : '-' %></td>
-              <td><%= project.deadline ? new Date(project.deadline).toLocaleDateString('en-GB') : '-' %></td>
-              <td><%= project.status || 'Active' %></td>
-              <td><%= project.assigned_people ?? 0 %></td>
-            </tr>
+      <% if (!departments || departments.length === 0) { %>
+        <div class="empty-state-card">
+          <p>No departments found.</p>
+        </div>
+      <% } else { %>
+        <div class="department-grid">
+          <% departments.forEach((department) => { %>
+            <article class="department-card">
+              <div class="department-card-header">
+                <h3><%= department.department_name %></h3>
+                <a href="/departments/<%= department.department_id %>" class="table-link">Open department</a>
+              </div>
+
+              <div class="mini-stats-grid">
+                <div class="mini-stat-box">
+                  <span class="mini-stat-label">Open positions</span>
+                  <strong class="mini-stat-value"><%= department.open_positions || 0 %></strong>
+                </div>
+
+                <div class="mini-stat-box">
+                  <span class="mini-stat-label">Projects</span>
+                  <strong class="mini-stat-value"><%= department.projects_count || 0 %></strong>
+                </div>
+
+                <div class="mini-stat-box">
+                  <span class="mini-stat-label">Employees</span>
+                  <strong class="mini-stat-value"><%= department.employees_count || 0 %></strong>
+                </div>
+
+                <div class="mini-stat-box">
+                  <span class="mini-stat-label">Average workload</span>
+                  <strong class="mini-stat-value"><%= department.avg_workload || 0 %>%</strong>
+                </div>
+              </div>
+
+              <div class="department-extra-meta">
+                <p>
+                  <strong>Nearest deadline:</strong>
+                  <%= department.nearest_deadline ? new Date(department.nearest_deadline).toLocaleDateString('en-GB') : '-' %>
+                </p>
+              </div>
+            </article>
           <% }) %>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section class="content-card">
-  <div class="projects-header">
-    <h2>Employees</h2>
-  </div>
-
-  <div class="table-wrap">
-    <table class="overview-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Workload</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% if (!employees || employees.length === 0) { %>
-          <tr>
-            <td colspan="4">No employees found.</td>
-          </tr>
-        <% } else { %>
-          <% employees.forEach(employee => { %>
-            <tr>
-              <td><%= employee.full_name %></td>
-              <td><%= employee.email || '-' %></td>
-              <td><%= employee.workload_percent ?? 0 %>%</td>
-              <td><%= employee.employment_status || '-' %></td>
-            </tr>
-          <% }) %>
-        <% } %>
-      </tbody>
-    </table>
+        </div>
+      <% } %>
+    </section>
   </div>
 </section>
 

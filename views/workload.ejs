@@ -1,62 +1,110 @@
-﻿<%- include('partials/header') %>
+<%- include('partials/header', { title: 'Workload', activePage: 'workload', isLoggedIn: isLoggedIn }) %>
 
-<section class="card">
-  <h2>Project Workload</h2>
-  <p>Shows how many people are assigned to each project.</p>
+<section class="page-shell">
+  <div class="insight-layout-card">
+    <div class="page-heading-block">
+      <h1>Workload</h1>
+      <p>Project assignments and employees who are not currently assigned to projects.</p>
+    </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Project</th>
-          <th>Department</th>
-          <th>Status</th>
-          <th>Deadline</th>
-          <th>Assigned people</th>
-          <th>Names</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% projectAssignments.forEach(project => { %>
-          <tr>
-            <td><%= project.project_name %></td>
-            <td><%= project.department_name || '-' %></td>
-            <td><%= project.status || '-' %></td>
-            <td><%= project.deadline || '-' %></td>
-            <td><%= project.assigned_people || 0 %></td>
-            <td><%= project.assigned_names || '-' %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+    <div class="stats-grid">
+      <article class="stat-card">
+        <span class="stat-label">Projects</span>
+        <strong class="stat-value"><%= totalProjects || 0 %></strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">Unassigned employees</span>
+        <strong class="stat-value"><%= employeesWithoutProjects ? employeesWithoutProjects.length : 0 %></strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">Busy projects</span>
+        <strong class="stat-value"><%= overloadedProjects || 0 %></strong>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-label">Assigned people total</span>
+        <strong class="stat-value">
+          <%= (projectAssignments || []).reduce((sum, project) => sum + Number(project.assigned_people || 0), 0) %>
+        </strong>
+      </article>
+    </div>
+
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Project workload</h2>
+      </div>
+
+      <% if (!projectAssignments || projectAssignments.length === 0) { %>
+        <div class="empty-state-card">
+          <p>No projects found.</p>
+        </div>
+      <% } else { %>
+        <div class="table-card">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Deadline</th>
+                <th>Assigned people</th>
+                <th>Names</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% projectAssignments.forEach((project) => { %>
+                <tr>
+                  <td><%= project.project_name %></td>
+                  <td><%= project.department_name || '-' %></td>
+                  <td><span class="status-pill"><%= project.status || '-' %></span></td>
+                  <td><%= project.deadline ? new Date(project.deadline).toLocaleDateString('en-GB') : '-' %></td>
+                  <td><%= project.assigned_people || 0 %></td>
+                  <td><%= project.assigned_names || '-' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="content-section">
+      <div class="section-header-row">
+        <h2>Employees without project assignment</h2>
+      </div>
+
+      <% if (!employeesWithoutProjects || employeesWithoutProjects.length === 0) { %>
+        <div class="empty-state-card">
+          <p>Everyone is currently assigned to at least one project.</p>
+        </div>
+      <% } else { %>
+        <div class="table-card">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Workload</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% employeesWithoutProjects.forEach((employee) => { %>
+                <tr>
+                  <td><%= employee.full_name %></td>
+                  <td><%= employee.email || '-' %></td>
+                  <td><%= employee.department_name || '-' %></td>
+                  <td><%= employee.workload_percent ?? 0 %>%</td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
   </div>
 </section>
 
-<section class="card">
-  <h3>Employees without project assignment</h3>
-
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Department</th>
-          <th>Workload %</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% employeesWithoutProjects.forEach(employee => { %>
-          <tr>
-            <td><%= employee.full_name %></td>
-            <td><%= employee.email || '-' %></td>
-            <td><%= employee.department_name || '-' %></td>
-            <td><%= employee.workload_percent ?? 0 %></td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<%- include('partials/footer') %>
+<%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>

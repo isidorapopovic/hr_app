@@ -5,8 +5,7 @@ const requireLogin = require('../middleware/auth');
 
 async function renderDepartmentsOverview(req, res) {
     try {
-        const departments = await db.all(
-            `
+        const departments = await db.all(`
       SELECT
         d.department_id,
         d.department_name,
@@ -16,7 +15,8 @@ async function renderDepartmentsOverview(req, res) {
         ROUND(COALESCE(AVG(e.workload_percent), 0), 0) AS avg_workload,
         MIN(
           CASE
-            WHEN pr.deadline IS NOT NULL AND COALESCE(pr.status, '') <> 'Completed'
+            WHEN pr.deadline IS NOT NULL
+             AND COALESCE(pr.status, '') <> 'Completed'
             THEN pr.deadline
             ELSE NULL
           END
@@ -27,8 +27,7 @@ async function renderDepartmentsOverview(req, res) {
       LEFT JOIN employees e ON e.department_id = d.department_id
       GROUP BY d.department_id, d.department_name
       ORDER BY d.department_name
-      `
-        );
+    `);
 
         res.render('departments_overview', {
             title: 'Department Overview',
@@ -38,7 +37,7 @@ async function renderDepartmentsOverview(req, res) {
         });
     } catch (err) {
         console.error('Departments overview error:', err.message);
-        res.status(500).send('Failed to load department overview.');
+        res.status(500).send(`Failed to load department overview: ${err.message}`);
     }
 }
 
@@ -123,7 +122,7 @@ router.get('/:departmentId', requireLogin, async (req, res) => {
         });
     } catch (err) {
         console.error('Department detail error:', err.message);
-        res.status(500).send('Failed to load department detail.');
+        res.status(500).send(`Failed to load department detail: ${err.message}`);
     }
 });
 
