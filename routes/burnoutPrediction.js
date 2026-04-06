@@ -3,14 +3,14 @@ const router = express.Router();
 const db = require('../db');
 const requireLogin = require('../middleware/auth');
 const {
-  enrichBurnoutEmployees,
-  buildBurnoutSummary,
-  buildTeamFlags
+    enrichBurnoutEmployees,
+    buildBurnoutSummary,
+    buildTeamFlags
 } = require('../services/burnoutPredictionService');
 
 router.get('/', requireLogin, async (req, res) => {
-  try {
-    const employeesRaw = await db.all(`
+    try {
+        const employeesRaw = await db.all(`
       WITH direct_reports AS (
         SELECT
           reporting_manager_id AS manager_id,
@@ -88,37 +88,37 @@ router.get('/', requireLogin, async (req, res) => {
       ORDER BY e.full_name
     `);
 
-    const employees = enrichBurnoutEmployees(employeesRaw).sort(
-      (a, b) => b.burnout_score - a.burnout_score
-    );
+        const employees = enrichBurnoutEmployees(employeesRaw).sort(
+            (a, b) => b.burnout_score - a.burnout_score
+        );
 
-    const summary = buildBurnoutSummary(employees);
-    const teams = buildTeamFlags(employees);
+        const summary = buildBurnoutSummary(employees);
+        const teams = buildTeamFlags(employees);
 
-    const recommendations = [];
-    employees.slice(0, 5).forEach((employee) => {
-      if (employee.burnout_risk !== 'Low') {
-        recommendations.push({
-          severity: employee.burnout_risk,
-          title: `${employee.full_name} needs a workload check`,
-          message: `${employee.full_name} scored ${employee.burnout_score}/100. Main signals: ${employee.top_reasons.join(', ')}.`
+        const recommendations = [];
+        employees.slice(0, 5).forEach((employee) => {
+            if (employee.burnout_risk !== 'Low') {
+                recommendations.push({
+                    severity: employee.burnout_risk,
+                    title: `${employee.full_name} needs a workload check`,
+                    message: `${employee.full_name} scored ${employee.burnout_score}/100. Main signals: ${employee.top_reasons.join(', ')}.`
+                });
+            }
         });
-      }
-    });
 
-    res.render('burnout_prediction', {
-      title: 'Burnout Prediction',
-      activePage: 'burnout-prediction',
-      isLoggedIn: true,
-      summary,
-      employees,
-      teams,
-      recommendations
-    });
-  } catch (error) {
-    console.error('Burnout prediction route error:', error);
-    res.status(500).send(`Failed to load burnout prediction page: ${error.message}`);
-  }
+        res.render('burnout_prediction', {
+            title: 'Burnout Prediction',
+            activePage: 'burnout-prediction',
+            isLoggedIn: true,
+            summary,
+            employees,
+            teams,
+            recommendations
+        });
+    } catch (error) {
+        console.error('Burnout prediction route error:', error);
+        res.status(500).send(`Failed to load burnout prediction page: ${error.message}`);
+    }
 });
 
 module.exports = router;
