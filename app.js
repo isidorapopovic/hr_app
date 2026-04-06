@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
+const db = require('./db');
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
@@ -37,12 +38,46 @@ app.use(
     })
 );
 
-// make login/user data available in all EJS views
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     res.locals.currentUser = req.session.user || null;
     res.locals.isLoggedIn = !!req.session.user;
     next();
+});
+
+// first screen
+app.get('/', (req, res) => {
+    res.render('welcome');
+});
+
+// actual home page
+app.get('/home', async (req, res) => {
+    let jobs = [];
+
+    try {
+        jobs = await db.all(`
+      SELECT
+        p.position_id,
+        p.position_title,
+        p.position_level,
+        p.is_active,
+        p.created_at,
+        d.department_name
+      FROM positions p
+      LEFT JOIN departments d ON p.department_id = d.department_id
+      WHERE p.is_active = 1
+      ORDER BY d.department_name, p.position_title
+    `);
+    } catch (err) {
+        console.error('Home query error:', err.message);
+    }
+
+    res.render('index', {
+        title: 'Home',
+        activePage: 'home',
+        isLoggedIn: !!req.session.user,
+        jobs
+    });
 });
 
 // routes

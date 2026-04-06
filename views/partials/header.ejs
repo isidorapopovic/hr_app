@@ -10,14 +10,13 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="brand">
-        <a href="/" class="brand-logo-link">
+        <a href="/home" class="brand-logo-link">
           <img src="/images/people-pulse.png" alt="People Pulse" class="brand-logo">
         </a>
-        <p class="brand-tagline">Recruitment, workforce visibility, and internal HR workflows</p>
       </div>
 
       <nav class="main-nav">
-        <a href="/" class="<%= activePage === 'home' ? 'active' : '' %>">Home</a>
+        <a href="/home" class="<%= activePage === 'home' ? 'active' : '' %>">Home</a>
         <a href="/jobs" class="<%= activePage === 'jobs' ? 'active' : '' %>">Job Postings</a>
 
         <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
