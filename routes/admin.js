@@ -546,12 +546,14 @@ async function importEmployees(records) {
         try {
             const applicantFullName = safeValue(row.applicant_full_name);
             const fullName = safeValue(row.full_name);
+            const email = safeValue(row.email);
             const positionTitle = safeValue(row.position_title);
             const hireDate = safeValue(row.hire_date);
             const employmentStatus = normaliseStatus(row.employment_status) || 'active';
             const endDate = safeValue(row.end_date);
 
             if (!fullName) throw new Error('full_name is required.');
+            if (!email) throw new Error('email is required.');
             if (!positionTitle) throw new Error('position_title is required.');
             if (!hireDate) throw new Error('hire_date is required.');
 
@@ -575,15 +577,17 @@ async function importEmployees(records) {
                     `INSERT INTO employees (
             applicant_id,
             full_name,
+            email,
             department_id,
             position_id,
             hire_date,
             employment_status,
             end_date
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                     [
                         applicantId,
                         fullName,
+                        email,
                         position.department_id,
                         position.position_id,
                         hireDate,
