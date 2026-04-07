@@ -65,6 +65,18 @@ const expectedHeaders = {
         'performed_by',
         'notes'
     ],
+    employee_signals: [
+        'employee_email',
+        'signal_date',
+        'absent_days',
+        'sick_leave_days',
+        'overtime_hours',
+        'meeting_hours',
+        'pto_days_used',
+        'survey_sentiment',
+        'manager_feedback_score',
+        'project_intensity'
+    ],
     combined: []
 };
 
@@ -117,6 +129,27 @@ function toIntegerOrNull(value) {
     if (v === null) return null;
     const n = Number(v);
     return Number.isInteger(n) ? n : null;
+}
+
+function toNullableNumber(value) {
+    if (value === undefined || value === null || String(value).trim() === '') {
+        return null;
+    }
+
+    const num = Number(value);
+    if (Number.isNaN(num)) {
+        throw new Error(`Invalid numeric value: ${value}`);
+    }
+
+    return num;
+}
+
+function toRequiredNumber(value, fieldName) {
+    const num = Number(value);
+    if (Number.isNaN(num)) {
+        throw new Error(`Invalid numeric value for ${fieldName}: ${value}`);
+    }
+    return num;
 }
 
 function renderPage(res, {
@@ -276,6 +309,14 @@ async function getEmployeeByFullName(fullName) {
     return db.get(
         'SELECT employee_id, full_name FROM employees WHERE LOWER(full_name) = LOWER($1) LIMIT 1',
         [fullName]
+    );
+}
+
+async function getEmployeeByEmail(email) {
+    if (!email) return null;
+    return db.get(
+        'SELECT employee_id, full_name, email FROM employees WHERE LOWER(email) = LOWER($1) LIMIT 1',
+        [email]
     );
 }
 
@@ -722,6 +763,89 @@ async function importActions(records) {
     return results;
 }
 
+async function importEmployeeSignals(records) {
+    const results = { successCount: 0, failureCount: 0, rowErrors: [] };
+
+    for (let i = 0; i < records.length; i++) {
+        const rowNumber = i + 2;
+        const row = records[i];
+
+        try {
+            const employeeEmail = safeValue(row.employee_email);
+            const signalDate = safeValue(row.signal_date);
+
+            if (!employeeEmail) {
+                throw new Error('employee_email is required.');
+            }
+
+            if (!signalDate) {
+                throw new Error('signal_date is required.');
+            }
+
+            const employee = await getEmployeeByEmail(employeeEmail);
+            if (!employee) {
+                throw new Error(`No employee found for email: ${employeeEmail}`);
+            }
+
+            const absentDays = toRequiredNumber(row.absent_days ?? 0, 'absent_days');
+            const sickLeaveDays = toRequiredNumber(row.sick_leave_days ?? 0, 'sick_leave_days');
+            const overtimeHours = toRequiredNumber(row.overtime_hours ?? 0, 'overtime_hours');
+            const meetingHours = toRequiredNumber(row.meeting_hours ?? 0, 'meeting_hours');
+            const ptoDaysUsed = toRequiredNumber(row.pto_days_used ?? 0, 'pto_days_used');
+
+            const surveySentiment = toNullableNumber(row.survey_sentiment);
+            const managerFeedbackScore = toNullableNumber(row.manager_feedback_score);
+            const projectIntensity = toNullableNumber(row.project_intensity);
+
+            await db.run(
+                `INSERT INTO employee_signals (
+          employee_id,
+          signal_date,
+          absent_days,
+          sick_leave_days,
+          overtime_hours,
+          meeting_hours,
+          pto_days_used,
+          survey_sentiment,
+          manager_feedback_score,
+          project_intensity
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (employee_id, signal_date)
+        DO UPDATE SET
+          absent_days = EXCLUDED.absent_days,
+          sick_leave_days = EXCLUDED.sick_leave_days,
+          overtime_hours = EXCLUDED.overtime_hours,
+          meeting_hours = EXCLUDED.meeting_hours,
+          pto_days_used = EXCLUDED.pto_days_used,
+          survey_sentiment = EXCLUDED.survey_sentiment,
+          manager_feedback_score = EXCLUDED.manager_feedback_score,
+          project_intensity = EXCLUDED.project_intensity,
+          updated_at = CURRENT_TIMESTAMP`,
+                [
+                    employee.employee_id,
+                    signalDate,
+                    absentDays,
+                    sickLeaveDays,
+                    overtimeHours,
+                    meetingHours,
+                    ptoDaysUsed,
+                    surveySentiment,
+                    managerFeedbackScore,
+                    projectIntensity
+                ]
+            );
+
+            results.successCount++;
+        } catch (err) {
+            results.failureCount++;
+            results.rowErrors.push({ rowNumber, error: err.message });
+        }
+    }
+
+    return results;
+}
+
 async function importCombined(records) {
     const results = { successCount: 0, failureCount: 0, rowErrors: [] };
 
@@ -938,6 +1062,8 @@ async function runImport(uploadType, records) {
             return importProjects(records);
         case 'actions':
             return importActions(records);
+        case 'employee_signals':
+            return importEmployeeSignals(records);
         case 'combined':
             return importCombined(records);
         default:

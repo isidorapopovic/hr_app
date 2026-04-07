@@ -1,21 +1,21 @@
-<%- include('partials/header', { title: 'Admin CSV Upload', activePage: 'admin-upload', isLoggedIn: isLoggedIn, user: user }) %>
+<%- include('partials/header', { title: 'Admin CSV Upload', activePage: 'admin_upload', isLoggedIn: isLoggedIn, user: user }) %>
 
-<div class="page-card">
-  <h1 class="section-title">Admin CSV Upload</h1>
-  <p>Import HR data from a CSV file and review the results below.</p>
+<section class="card">
+  <h1>Admin CSV Upload</h1>
+  <p>Import HR data in a controlled order and review results before continuing.</p>
 
   <% if (message) { %>
-    <div class="alert-success"><%= message %></div>
+    <div class="alert success"><%= message %></div>
   <% } %>
 
   <% if (error) { %>
-    <div class="alert-error"><%= error %></div>
+    <div class="alert error"><%= error %></div>
   <% } %>
 
-  <form action="/admin/upload-csv" method="POST" enctype="multipart/form-data" class="auth-form">
-    <div class="form-row">
+  <form action="/admin/upload-csv" method="POST" enctype="multipart/form-data" class="stack">
+    <div>
       <label for="uploadType">Upload Type</label>
-      <select name="uploadType" id="uploadType" required>
+      <select id="uploadType" name="uploadType" required>
         <option value="">Select data type</option>
         <option value="departments">Departments</option>
         <option value="positions">Positions</option>
@@ -23,98 +23,69 @@
         <option value="employees">Employees</option>
         <option value="projects">Projects</option>
         <option value="actions">Actions</option>
+        <option value="employee_signals">Employee Signals</option>
         <option value="combined">Combined HR CSV</option>
       </select>
     </div>
 
-    <div class="form-row">
+    <div>
       <label for="csvFile">CSV File</label>
-      <input type="file" id="csvFile" name="csvFile" accept=".csv" required />
+      <input id="csvFile" type="file" name="csvFile" accept=".csv" required>
     </div>
 
-    <button type="submit" class="primary-btn">Upload CSV</button>
+    <button type="submit">Upload CSV</button>
   </form>
+</section>
 
-  <% if (typeof importSummary !== 'undefined' && importSummary) { %>
-    <div class="section-space"></div>
-    <h2 class="subsection-title">Import Summary</h2>
-    <div class="table-wrap">
-      <table class="data-table">
-        <tbody>
-          <tr>
-            <th>Type</th>
-            <td><%= importSummary.uploadType %></td>
-          </tr>
-          <tr>
-            <th>Total rows</th>
-            <td><%= importSummary.totalRows %></td>
-          </tr>
-          <tr>
-            <th>Successful</th>
-            <td><%= importSummary.successCount %></td>
-          </tr>
-          <tr>
-            <th>Failed</th>
-            <td><%= importSummary.failureCount %></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
+<section class="card">
+  <h2>Expected upload order</h2>
+  <ol>
+    <li>Departments</li>
+    <li>Positions</li>
+    <li>Applicants</li>
+    <li>Employees</li>
+    <li>Projects</li>
+    <li>Actions</li>
+    <li>Employee Signals</li>
+  </ol>
+</section>
 
-  <% if (typeof detectedHeaders !== 'undefined' && detectedHeaders.length > 0) { %>
-    <div class="section-space"></div>
-    <h2 class="subsection-title">Detected Columns</h2>
-    <p><%= detectedHeaders.join(', ') %></p>
-  <% } %>
+<section class="card">
+  <h2>Employee Signals CSV format</h2>
+  <p>Use employee email to assign the uploaded data to the correct employee record.</p>
+  <pre>employee_email,signal_date,absent_days,sick_leave_days,overtime_hours,meeting_hours,pto_days_used,survey_sentiment,manager_feedback_score,project_intensity</pre>
+</section>
 
-  <% if (typeof rowErrors !== 'undefined' && rowErrors.length > 0) { %>
-    <div class="section-space"></div>
-    <h2 class="subsection-title">Row Errors</h2>
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>CSV Row</th>
-            <th>Error</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% rowErrors.forEach((rowError) => { %>
-            <tr>
-              <td><%= rowError.rowNumber %></td>
-              <td><%= rowError.error %></td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
+<% if (importSummary) { %>
+  <section class="card">
+    <h2>Import Summary</h2>
+    <p><strong>Type:</strong> <%= importSummary.uploadType %></p>
+    <p><strong>Total rows:</strong> <%= importSummary.totalRows %></p>
+    <p><strong>Successful:</strong> <%= importSummary.successCount %></p>
+    <p><strong>Failed:</strong> <%= importSummary.failureCount %></p>
+  </section>
+<% } %>
 
-  <% if (typeof previewRows !== 'undefined' && previewRows.length > 0) { %>
-    <div class="section-space"></div>
-    <h2 class="subsection-title">Preview</h2>
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <% Object.keys(previewRows[0]).forEach((key) => { %>
-              <th><%= key %></th>
-            <% }) %>
-          </tr>
-        </thead>
-        <tbody>
-          <% previewRows.forEach((row) => { %>
-            <tr>
-              <% Object.keys(previewRows[0]).forEach((key) => { %>
-                <td><%= row[key] %></td>
-              <% }) %>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    </div>
-  <% } %>
-</div>
+<% if (detectedHeaders && detectedHeaders.length > 0) { %>
+  <section class="card">
+    <h2>Detected Columns</h2>
+    <ul>
+      <% detectedHeaders.forEach((header) => { %>
+        <li><%= header %></li>
+      <% }) %>
+    </ul>
+  </section>
+<% } %>
 
-<%- include('partials/footer', { isLoggedIn: isLoggedIn }) %>
+<% if (rowErrors && rowErrors.length > 0) { %>
+  <section class="card">
+    <h2>Row Errors</h2>
+    <ul>
+      <% rowErrors.forEach((rowError) => { %>
+        <li>Row <%= rowError.rowNumber %>: <%= rowError.error %></li>
+      <% }) %>
+    </ul>
+  </section>
+<% } %>
+
+<%- include('partials/footer') %>
