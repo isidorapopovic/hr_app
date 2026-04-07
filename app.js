@@ -15,6 +15,7 @@ const workloadRoutes = require('./routes/workload');
 const organisationRoutes = require('./routes/organisation');
 const insightsRoutes = require('./routes/insights');
 const adminRoutes = require('./routes/admin');
+const analyticsRoutes = require('./routes/analytics');
 const burnoutPredictionRoutes = require('./routes/burnoutPrediction');
 
 const app = express();
@@ -94,6 +95,7 @@ app.use('/workload', workloadRoutes);
 app.use('/organisation', organisationRoutes);
 app.use('/insights', insightsRoutes);
 app.use('/burnout-prediction', burnoutPredictionRoutes);
+app.use('/analytics', analyticsRoutes);
 app.use('/admin', adminRoutes);
 
 // 404 page

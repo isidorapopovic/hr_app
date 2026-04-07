@@ -1,0 +1,275 @@
+<%- include('partials/header', { title: 'Analytics', activePage: 'analytics', isLoggedIn: isLoggedIn, user: user }) %>
+
+<section class="page-head">
+  <h1>Workload Analytics</h1>
+  <p>Interactive charts for employee workload and burnout-related signals.</p>
+</section>
+
+<section class="card">
+  <h2>Filters</h2>
+
+  <form id="filters-form" class="filters-grid">
+    <div>
+      <label for="employee_id">Employee</label>
+      <select id="employee_id" name="employee_id">
+        <option value="">All employees</option>
+        <% employees.forEach((employee) => { %>
+          <option value="<%= employee.employee_id %>">
+            <%= employee.full_name %>
+            <%= employee.department_name ? ' - ' + employee.department_name : '' %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div>
+      <label for="start_date">Start date</label>
+      <input type="date" id="start_date" name="start_date">
+    </div>
+
+    <div>
+      <label for="end_date">End date</label>
+      <input type="date" id="end_date" name="end_date">
+    </div>
+
+    <div class="filter-actions">
+      <button type="submit">Apply filters</button>
+      <button type="button" id="reset-filters">Reset</button>
+    </div>
+  </form>
+</section>
+
+<section class="stats-grid" id="summary-cards">
+  <div class="stat-card">
+    <h3>Rows</h3>
+    <p id="sum-total-rows">-</p>
+  </div>
+  <div class="stat-card">
+    <h3>Employees</h3>
+    <p id="sum-employees">-</p>
+  </div>
+  <div class="stat-card">
+    <h3>Avg overtime</h3>
+    <p id="sum-overtime">-</p>
+  </div>
+  <div class="stat-card">
+    <h3>Avg meeting load</h3>
+    <p id="sum-meeting">-</p>
+  </div>
+  <div class="stat-card">
+    <h3>Avg absence</h3>
+    <p id="sum-absence">-</p>
+  </div>
+  <div class="stat-card">
+    <h3>Avg intensity</h3>
+    <p id="sum-intensity">-</p>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Overtime Trend</h2>
+  <div id="overtime-chart" style="height: 380px;"></div>
+</section>
+
+<section class="card">
+  <h2>Meeting Load Trend</h2>
+  <div id="meeting-chart" style="height: 380px;"></div>
+</section>
+
+<section class="card">
+  <h2>Absence vs Sick Leave</h2>
+  <div id="absence-chart" style="height: 380px;"></div>
+</section>
+
+<section class="card">
+  <h2>Intensity, Sentiment and Manager Feedback</h2>
+  <div id="quality-chart" style="height: 420px;"></div>
+</section>
+
+<section class="card">
+  <h2>Signal Data</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Employee</th>
+          <th>Absent Days</th>
+          <th>Sick Leave</th>
+          <th>Overtime</th>
+          <th>Meeting Hours</th>
+          <th>PTO Used</th>
+          <th>Survey Sentiment</th>
+          <th>Manager Feedback</th>
+          <th>Project Intensity</th>
+        </tr>
+      </thead>
+      <tbody id="signals-table-body">
+        <tr>
+          <td colspan="10">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+  const form = document.getElementById('filters-form');
+  const resetBtn = document.getElementById('reset-filters');
+  const tableBody = document.getElementById('signals-table-body');
+
+  const overtimeChart = echarts.init(document.getElementById('overtime-chart'));
+  const meetingChart = echarts.init(document.getElementById('meeting-chart'));
+  const absenceChart = echarts.init(document.getElementById('absence-chart'));
+  const qualityChart = echarts.init(document.getElementById('quality-chart'));
+
+  function setSummary(summary) {
+    document.getElementById('sum-total-rows').textContent = summary?.total_rows ?? '-';
+    document.getElementById('sum-employees').textContent = summary?.employees_count ?? '-';
+    document.getElementById('sum-overtime').textContent = summary?.avg_overtime ?? '-';
+    document.getElementById('sum-meeting').textContent = summary?.avg_meeting_hours ?? '-';
+    document.getElementById('sum-absence').textContent = summary?.avg_absent_days ?? '-';
+    document.getElementById('sum-intensity').textContent = summary?.avg_project_intensity ?? '-';
+  }
+
+  function setTable(rows) {
+    if (!rows.length) {
+      tableBody.innerHTML = '<tr><td colspan="10">No data found for the selected filters.</td></tr>';
+      return;
+    }
+
+    tableBody.innerHTML = rows.map(row => `
+      <tr>
+        <td>${row.signal_date ?? '-'}</td>
+        <td>${row.full_name ?? '-'}</td>
+        <td>${row.absent_days ?? '-'}</td>
+        <td>${row.sick_leave_days ?? '-'}</td>
+        <td>${row.overtime_hours ?? '-'}</td>
+        <td>${row.meeting_hours ?? '-'}</td>
+        <td>${row.pto_days_used ?? '-'}</td>
+        <td>${row.survey_sentiment ?? '-'}</td>
+        <td>${row.manager_feedback_score ?? '-'}</td>
+        <td>${row.project_intensity ?? '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function buildSeries(rows, field) {
+    return rows.map(row => ({
+      value: [row.signal_date, row[field]]
+    }));
+  }
+
+  function renderCharts(rows) {
+    overtimeChart.setOption({
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'time' },
+      yAxis: { type: 'value', name: 'Hours' },
+      series: [
+        {
+          name: 'Overtime',
+          type: 'line',
+          smooth: true,
+          data: buildSeries(rows, 'overtime_hours')
+        }
+      ]
+    });
+
+    meetingChart.setOption({
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'time' },
+      yAxis: { type: 'value', name: 'Hours' },
+      series: [
+        {
+          name: 'Meeting Load',
+          type: 'line',
+          smooth: true,
+          data: buildSeries(rows, 'meeting_hours')
+        }
+      ]
+    });
+
+    absenceChart.setOption({
+      tooltip: { trigger: 'axis' },
+      legend: { top: 0 },
+      xAxis: { type: 'time' },
+      yAxis: { type: 'value', name: 'Days' },
+      series: [
+        {
+          name: 'Absent Days',
+          type: 'bar',
+          data: buildSeries(rows, 'absent_days')
+        },
+        {
+          name: 'Sick Leave Days',
+          type: 'bar',
+          data: buildSeries(rows, 'sick_leave_days')
+        }
+      ]
+    });
+
+    qualityChart.setOption({
+      tooltip: { trigger: 'axis' },
+      legend: { top: 0 },
+      xAxis: { type: 'time' },
+      yAxis: { type: 'value' },
+      series: [
+        {
+          name: 'Project Intensity',
+          type: 'line',
+          smooth: true,
+          data: buildSeries(rows, 'project_intensity')
+        },
+        {
+          name: 'Survey Sentiment',
+          type: 'line',
+          smooth: true,
+          data: buildSeries(rows, 'survey_sentiment')
+        },
+        {
+          name: 'Manager Feedback',
+          type: 'line',
+          smooth: true,
+          data: buildSeries(rows, 'manager_feedback_score')
+        }
+      ]
+    });
+  }
+
+  async function loadData() {
+    const params = new URLSearchParams(new FormData(form));
+    const response = await fetch(`/analytics/api/workload?${params.toString()}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      tableBody.innerHTML = `<tr><td colspan="10">${data.error || 'Failed to load analytics data.'}</td></tr>`;
+      return;
+    }
+
+    setSummary(data.summary);
+    setTable(data.rows);
+    renderCharts(data.rows);
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await loadData();
+  });
+
+  resetBtn.addEventListener('click', async () => {
+    form.reset();
+    await loadData();
+  });
+
+  window.addEventListener('resize', () => {
+    overtimeChart.resize();
+    meetingChart.resize();
+    absenceChart.resize();
+    qualityChart.resize();
+  });
+
+  loadData();
+</script>
+
+<%- include('partials/footer') %>
