@@ -77,8 +77,8 @@
 </section>
 
 <section class="card">
-  <h2>Absence vs Sick Leave</h2>
-  <div id="absence-chart" style="height: 380px;"></div>
+  <h2>Absence vs Sick Leave Calendar</h2>
+  <div id="absence-chart" style="height: 320px;"></div>
 </section>
 
 <section class="card">
@@ -156,14 +156,28 @@
   }
 
   function buildSeries(rows, field) {
-    return rows.map(row => ({
-      value: [row.signal_date, row[field]]
-    }));
+    return rows
+      .filter(row => row[field] !== null && row[field] !== undefined)
+      .map(row => [row.signal_date, Number(row[field])]);
   }
 
   function renderCharts(rows) {
+    overtimeChart.clear();
+    meetingChart.clear();
+    absenceChart.clear();
+    qualityChart.clear();
+
+    if (!rows.length) {
+      overtimeChart.setOption({ title: { text: 'No data', left: 'center', top: 'middle' } });
+      meetingChart.setOption({ title: { text: 'No data', left: 'center', top: 'middle' } });
+      absenceChart.setOption({ title: { text: 'No data', left: 'center', top: 'middle' } });
+      qualityChart.setOption({ title: { text: 'No data', left: 'center', top: 'middle' } });
+      return;
+    }
+
     overtimeChart.setOption({
       tooltip: { trigger: 'axis' },
+      grid: { left: 50, right: 30, top: 30, bottom: 50 },
       xAxis: { type: 'time' },
       yAxis: { type: 'value', name: 'Hours' },
       series: [
@@ -178,6 +192,7 @@
 
     meetingChart.setOption({
       tooltip: { trigger: 'axis' },
+      grid: { left: 50, right: 30, top: 30, bottom: 50 },
       xAxis: { type: 'time' },
       yAxis: { type: 'value', name: 'Hours' },
       series: [
@@ -190,21 +205,96 @@
       ]
     });
 
+    const calendarRows = rows.map(row => {
+      const absent = Number(row.absent_days || 0);
+      const sick = Number(row.sick_leave_days || 0);
+
+      let value = 0;
+      if (absent > 0 && sick > 0) {
+        value = 3;
+      } else if (absent > 0) {
+        value = 1;
+      } else if (sick > 0) {
+        value = 2;
+      }
+
+      return [row.signal_date, value];
+    });
+
+    const uniqueDates = [...new Set(rows.map(row => row.signal_date))].sort();
+
+    let calendarRange;
+    if (uniqueDates.length === 1) {
+      calendarRange = uniqueDates[0].slice(0, 4);
+    } else {
+      calendarRange = [uniqueDates[0], uniqueDates[uniqueDates.length - 1]];
+    }
+
     absenceChart.setOption({
-      tooltip: { trigger: 'axis' },
-      legend: { top: 0 },
-      xAxis: { type: 'time' },
-      yAxis: { type: 'value', name: 'Days' },
+      tooltip: {
+        formatter: function (params) {
+          const date = params.value[0];
+          const value = params.value[1];
+
+          let label = 'No event';
+          if (value === 1) label = 'Absent';
+          if (value === 2) label = 'Sick leave';
+          if (value === 3) label = 'Absent + Sick leave';
+
+          const row = rows.find(r => r.signal_date === date);
+
+          if (!row) {
+            return `${date}<br>${label}`;
+          }
+
+          return `
+            ${date}<br>
+            ${label}<br>
+            Absent days: ${row.absent_days ?? 0}<br>
+            Sick leave days: ${row.sick_leave_days ?? 0}
+          `;
+        }
+      },
+      visualMap: {
+        min: 0,
+        max: 3,
+        type: 'piecewise',
+        orient: 'horizontal',
+        left: 'center',
+        bottom: 0,
+        pieces: [
+          { value: 0, label: 'No event' },
+          { value: 1, label: 'Absent' },
+          { value: 2, label: 'Sick leave' },
+          { value: 3, label: 'Both' }
+        ]
+      },
+      calendar: {
+        top: 40,
+        left: 30,
+        right: 30,
+        cellSize: ['auto', 20],
+        range: calendarRange,
+        yearLabel: { show: false },
+        dayLabel: {
+          firstDay: 1,
+          nameMap: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        },
+        monthLabel: {
+          nameMap: 'en'
+        },
+        splitLine: {
+          show: true
+        },
+        itemStyle: {
+          borderWidth: 0.5
+        }
+      },
       series: [
         {
-          name: 'Absent Days',
-          type: 'bar',
-          data: buildSeries(rows, 'absent_days')
-        },
-        {
-          name: 'Sick Leave Days',
-          type: 'bar',
-          data: buildSeries(rows, 'sick_leave_days')
+          type: 'heatmap',
+          coordinateSystem: 'calendar',
+          data: calendarRows
         }
       ]
     });
@@ -212,6 +302,7 @@
     qualityChart.setOption({
       tooltip: { trigger: 'axis' },
       legend: { top: 0 },
+      grid: { left: 50, right: 30, top: 50, bottom: 50 },
       xAxis: { type: 'time' },
       yAxis: { type: 'value' },
       series: [

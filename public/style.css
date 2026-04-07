@@ -1608,3 +1608,54 @@ table {
     padding: 20px;
     margin-bottom: 18px;
 }
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+    table th,
+    table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+    }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 18px 0;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #d9e1ea;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.card {
+    background: #ffffff;
+    border: 1px solid #d9e1ea;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
