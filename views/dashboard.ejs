@@ -43,66 +43,77 @@
 
     <article class="stat-card">
       <span class="stat-label">Departments covered</span>
-      <strong class="stat-value"><%= stats.departmentsCovered || 0 %></strong>
+      <strong class="stat-value"><%= stats.departmentsCount || 0 %></strong>
     </article>
 
     <article class="stat-card">
-      <span class="stat-label">Recent actions</span>
-      <strong class="stat-value"><%= stats.recentActions || 0 %></strong>
+      <span class="stat-label">Open jobs</span>
+      <strong class="stat-value"><%= stats.openJobs || 0 %></strong>
     </article>
   </section>
 
   <div class="dashboard-sections">
     <section class="dashboard-card">
       <h2>Application Status Breakdown</h2>
-      <% if (statusBreakdown && statusBreakdown.length) { %>
+
+      <% if (!statusCounts || statusCounts.length === 0) { %>
+        <p class="empty-state">No applicant status data available.</p>
+      <% } else { %>
         <div class="simple-list">
-          <% statusBreakdown.forEach(item => { %>
+          <% statusCounts.forEach((row) => { %>
             <div class="simple-list-row">
-              <span><%= item.status %></span>
-              <strong><%= item.count %></strong>
+              <span><%= row.application_status %></span>
+              <strong><%= row.total %></strong>
             </div>
           <% }) %>
         </div>
-      <% } else { %>
-        <p class="empty-state">No applicant status data available.</p>
       <% } %>
     </section>
 
     <section class="dashboard-card">
       <h2>Department Hiring Summary</h2>
-      <% if (departmentSummary && departmentSummary.length) { %>
+
+      <% if (!departmentSummary || departmentSummary.length === 0) { %>
+        <p class="empty-state">No department summary available.</p>
+      <% } else { %>
         <div class="simple-list">
-          <% departmentSummary.forEach(item => { %>
+          <% departmentSummary.forEach((row) => { %>
             <div class="simple-list-row">
-              <span><%= item.department_name %></span>
-              <strong><%= item.count %></strong>
+              <span><%= row.department_name %></span>
+              <strong>
+                Applicants: <%= row.applicants || 0 %> · Hires: <%= row.hires || 0 %>
+              </strong>
             </div>
           <% }) %>
         </div>
-      <% } else { %>
-        <p class="empty-state">No department summary available.</p>
       <% } %>
     </section>
 
     <section class="dashboard-card dashboard-card-full">
       <h2>Recent Actions</h2>
-      <% if (recentActions && recentActions.length) { %>
+
+      <% if (!recentActions || recentActions.length === 0) { %>
+        <p class="empty-state">No recent actions found.</p>
+      <% } else { %>
         <div class="simple-list">
-          <% recentActions.forEach(item => { %>
+          <% recentActions.forEach((action) => { %>
             <div class="simple-list-row">
-              <span><%= item.label || item.action_type || 'Activity' %></span>
-              <strong><%= item.action_date || '' %></strong>
+              <span>
+                <strong><%= action.action_type || '-' %></strong>
+                <% if (action.person_name) { %>
+                  — <%= action.person_name %>
+                <% } %>
+              </span>
+              <strong><%= action.action_date || '-' %></strong>
             </div>
           <% }) %>
         </div>
-      <% } else { %>
-        <p class="empty-state">No recent actions found.</p>
       <% } %>
     </section>
 
     <section class="dashboard-card dashboard-card-full">
       <h2>Quick links</h2>
+
       <div class="quick-links-grid">
         <a class="quick-link-card" href="/departments/overview">
           <h3>Departments Overview</h3>
