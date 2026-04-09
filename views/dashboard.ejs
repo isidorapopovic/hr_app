@@ -1,169 +1,131 @@
-﻿<%- include('partials/header', { title: 'Dashboard', activePage: 'dashboard' }) %>
+<%- include('partials/header', { title: 'Dashboard', activePage: 'dashboard' }) %>
 
-<section class="page-head">
-  <h1>Dashboard</h1>
-  <p>Overview of hiring activity and current HR status.</p>
-</section>
-
-<section class="stats-grid">
-  <div class="stat-card">
-    <span class="stat-label">Total applicants</span>
-    <div class="stat-value"><%= stats?.total_applicants ?? 0 %></div>
-  </div>
-
-  <div class="stat-card">
-    <span class="stat-label">In process</span>
-    <div class="stat-value"><%= stats?.in_process ?? 0 %></div>
-  </div>
-
-  <div class="stat-card">
-    <span class="stat-label">Hired</span>
-    <div class="stat-value"><%= stats?.hired_count ?? 0 %></div>
-  </div>
-
-  <div class="stat-card">
-    <span class="stat-label">Active employees</span>
-    <div class="stat-value"><%= stats?.active_employees ?? 0 %></div>
-  </div>
-</section>
-
-<section class="stats-grid">
-  <div class="stat-card">
-    <span class="stat-label">Avg days to hire</span>
-    <div class="stat-value"><%= stats?.avg_days_to_hire ?? 0 %></div>
-  </div>
-
-  <div class="stat-card">
-    <span class="stat-label">Offer acceptance rate</span>
-    <div class="stat-value"><%= stats?.offer_acceptance_rate ?? 0 %>%</div>
-  </div>
-
-  <div class="stat-card">
-    <span class="stat-label">Departments covered</span>
-    <div class="stat-value"><%= departmentSummary ? departmentSummary.length : 0 %></div>
-  </div>
-
-  <div class="stat-card">
-    <span class="stat-label">Recent actions</span>
-    <div class="stat-value"><%= recentActions ? recentActions.length : 0 %></div>
-  </div>
-</section>
-
-<section class="panel">
-  <h2>Application Status Breakdown</h2>
-
-  <% if (!statusCounts || statusCounts.length === 0) { %>
-    <div class="empty-state">No applicant status data available.</div>
-  <% } else { %>
-    <div class="table-card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% statusCounts.forEach((row) => { %>
-              <tr>
-                <td><%= row.application_status %></td>
-                <td><%= row.total %></td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
+<section class="dashboard-page">
+  <div class="dashboard-hero">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="dashboard-subtitle">
+        Overview of hiring activity and current HR status.
+      </p>
     </div>
-  <% } %>
-</section>
+  </div>
 
-<section class="panel">
-  <h2>Department Hiring Summary</h2>
+  <section class="stats-grid dashboard-stats">
+    <article class="stat-card">
+      <span class="stat-label">Total applicants</span>
+      <strong class="stat-value"><%= stats.totalApplicants || 0 %></strong>
+    </article>
 
-  <% if (!departmentSummary || departmentSummary.length === 0) { %>
-    <div class="empty-state">No department summary available.</div>
-  <% } else { %>
-    <div class="table-card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Department</th>
-              <th>Applicants</th>
-              <th>Hires</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% departmentSummary.forEach((row) => { %>
-              <tr>
-                <td><%= row.department_name %></td>
-                <td><%= row.applicants ?? 0 %></td>
-                <td><%= row.hires ?? 0 %></td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
+    <article class="stat-card">
+      <span class="stat-label">In process</span>
+      <strong class="stat-value"><%= stats.inProcess || 0 %></strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Hired</span>
+      <strong class="stat-value"><%= stats.hired || 0 %></strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Active employees</span>
+      <strong class="stat-value"><%= stats.activeEmployees || 0 %></strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Avg days to hire</span>
+      <strong class="stat-value"><%= stats.avgDaysToHire || 0 %></strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Offer acceptance rate</span>
+      <strong class="stat-value"><%= stats.offerAcceptanceRate || 0 %>%</strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Departments covered</span>
+      <strong class="stat-value"><%= stats.departmentsCovered || 0 %></strong>
+    </article>
+
+    <article class="stat-card">
+      <span class="stat-label">Recent actions</span>
+      <strong class="stat-value"><%= stats.recentActions || 0 %></strong>
+    </article>
+  </section>
+
+  <div class="dashboard-sections">
+    <section class="dashboard-card">
+      <h2>Application Status Breakdown</h2>
+      <% if (statusBreakdown && statusBreakdown.length) { %>
+        <div class="simple-list">
+          <% statusBreakdown.forEach(item => { %>
+            <div class="simple-list-row">
+              <span><%= item.status %></span>
+              <strong><%= item.count %></strong>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="empty-state">No applicant status data available.</p>
+      <% } %>
+    </section>
+
+    <section class="dashboard-card">
+      <h2>Department Hiring Summary</h2>
+      <% if (departmentSummary && departmentSummary.length) { %>
+        <div class="simple-list">
+          <% departmentSummary.forEach(item => { %>
+            <div class="simple-list-row">
+              <span><%= item.department_name %></span>
+              <strong><%= item.count %></strong>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="empty-state">No department summary available.</p>
+      <% } %>
+    </section>
+
+    <section class="dashboard-card dashboard-card-full">
+      <h2>Recent Actions</h2>
+      <% if (recentActions && recentActions.length) { %>
+        <div class="simple-list">
+          <% recentActions.forEach(item => { %>
+            <div class="simple-list-row">
+              <span><%= item.label || item.action_type || 'Activity' %></span>
+              <strong><%= item.action_date || '' %></strong>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="empty-state">No recent actions found.</p>
+      <% } %>
+    </section>
+
+    <section class="dashboard-card dashboard-card-full">
+      <h2>Quick links</h2>
+      <div class="quick-links-grid">
+        <a class="quick-link-card" href="/departments/overview">
+          <h3>Departments Overview</h3>
+          <p>Track department activity, workloads, projects, and staffing.</p>
+        </a>
+
+        <a class="quick-link-card" href="/employees">
+          <h3>Employees</h3>
+          <p>Review employee records and current staffing information.</p>
+        </a>
+
+        <a class="quick-link-card" href="/applicants">
+          <h3>Applicants</h3>
+          <p>See current candidates and recruitment pipeline progress.</p>
+        </a>
+
+        <a class="quick-link-card" href="/workload">
+          <h3>Workload</h3>
+          <p>Check workload distribution and team pressure indicators.</p>
+        </a>
       </div>
-    </div>
-  <% } %>
-</section>
-
-<section class="panel">
-  <h2>Recent Actions</h2>
-
-  <% if (!recentActions || recentActions.length === 0) { %>
-    <div class="empty-state">No recent actions found.</div>
-  <% } else { %>
-    <div class="table-card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Action</th>
-              <th>Person</th>
-              <th>Performed By</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% recentActions.forEach((action) => { %>
-              <tr>
-                <td><%= action.action_date || '-' %></td>
-                <td><%= action.action_type || '-' %></td>
-                <td><%= action.person_name || '-' %></td>
-                <td><%= action.performed_by || '-' %></td>
-                <td><%= action.notes || '-' %></td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  <% } %>
-</section>
-
-<section class="nav-grid">
-  <a class="nav-card" href="/departments/overview">
-    <h2>Departments Overview</h2>
-    <p>Track department activity, workloads, projects, and staffing.</p>
-  </a>
-
-  <a class="nav-card" href="/employees">
-    <h2>Employees</h2>
-    <p>Review employee records and current staffing information.</p>
-  </a>
-
-  <a class="nav-card" href="/applicants">
-    <h2>Applicants</h2>
-    <p>See current candidates and recruitment pipeline progress.</p>
-  </a>
-
-  <a class="nav-card" href="/workload">
-    <h2>Workload</h2>
-    <p>Check workload distribution and team pressure indicators.</p>
-  </a>
+    </section>
+  </div>
 </section>
 
 <%- include('partials/footer') %>
