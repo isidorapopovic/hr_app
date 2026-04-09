@@ -17,6 +17,7 @@ const insightsRoutes = require('./routes/insights');
 const adminRoutes = require('./routes/admin');
 const analyticsRoutes = require('./routes/analytics');
 const burnoutPredictionRoutes = require('./routes/burnoutPrediction');
+const predictionsRoutes = require('./routes/predictions');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -97,6 +98,7 @@ app.use('/insights', insightsRoutes);
 app.use('/burnout-prediction', burnoutPredictionRoutes);
 app.use('/analytics', analyticsRoutes);
 app.use('/admin', adminRoutes);
+app.use('/predictions', predictionsRoutes);
 
 // 404 page
 app.use((req, res) => {

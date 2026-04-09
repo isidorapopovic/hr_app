@@ -1,0 +1,241 @@
+<%- include('partials/header', { title: 'Predictions', activePage: 'predictions' }) %>
+
+<section class="page-head">
+  <div>
+    <h1>Prediction Centre</h1>
+    <p class="muted">
+      Forward-looking view of workload pressure, team risk, and delivery capacity.
+    </p>
+  </div>
+</section>
+
+<section class="stats-grid">
+  <article class="stat-card">
+    <span class="stat-label">Total employees</span>
+    <strong class="stat-value"><%= summary.totalEmployees %></strong>
+  </article>
+
+  <article class="stat-card">
+    <span class="stat-label">High-risk employees</span>
+    <strong class="stat-value"><%= summary.highRiskEmployees %></strong>
+  </article>
+
+  <article class="stat-card">
+    <span class="stat-label">Tight departments</span>
+    <strong class="stat-value"><%= summary.tightDepartments %></strong>
+  </article>
+
+  <article class="stat-card">
+    <span class="stat-label">Overdue projects</span>
+    <strong class="stat-value"><%= summary.overdueProjects %></strong>
+  </article>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Calendar view</h2>
+    <span class="muted"><%= calendar.monthLabel %></span>
+  </div>
+
+  <div class="calendar-grid calendar-weekdays">
+    <div>Sun</div>
+    <div>Mon</div>
+    <div>Tue</div>
+    <div>Wed</div>
+    <div>Thu</div>
+    <div>Fri</div>
+    <div>Sat</div>
+  </div>
+
+  <% calendar.weeks.forEach((week) => { %>
+    <div class="calendar-grid">
+      <% week.forEach((day) => { %>
+        <% if (day.empty) { %>
+          <div class="calendar-cell calendar-cell-empty"></div>
+        <% } else { %>
+          <div class="calendar-cell">
+            <div class="calendar-day"><%= day.day %></div>
+
+            <% if (!day.events.length) { %>
+              <div class="calendar-no-events">No signals</div>
+            <% } %>
+
+            <% day.events.slice(0, 3).forEach((event) => { %>
+              <div class="calendar-event <%= event.type %>">
+                <strong><%= event.label %></strong>
+                <span><%= event.meta %></span>
+              </div>
+            <% }) %>
+
+            <% if (day.events.length > 3) { %>
+              <div class="calendar-more">+<%= day.events.length - 3 %> more</div>
+            <% } %>
+          </div>
+        <% } %>
+      <% }) %>
+    </div>
+  <% }) %>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Employee risk cards</h2>
+    <span class="muted">Sorted by predicted pressure score</span>
+  </div>
+
+  <div class="risk-card-grid">
+    <% if (!employeeRiskCards.length) { %>
+      <p>No employee data available.</p>
+    <% } %>
+
+    <% employeeRiskCards.forEach((emp) => { %>
+      <article class="risk-card risk-<%= emp.predicted_risk.toLowerCase() %>">
+        <div class="risk-card-top">
+          <div>
+            <h3><%= emp.full_name %></h3>
+            <p><%= emp.job_title || '-' %></p>
+          </div>
+          <span class="badge badge-<%= emp.predicted_risk.toLowerCase() %>">
+            <%= emp.predicted_risk %>
+          </span>
+        </div>
+
+        <div class="risk-metrics">
+          <div>
+            <span>Department</span>
+            <strong><%= emp.department_name || '-' %></strong>
+          </div>
+          <div>
+            <span>Workload</span>
+            <strong><%= emp.workload_percent || 0 %>%</strong>
+          </div>
+          <div>
+            <span>Projects</span>
+            <strong><%= emp.active_projects || 0 %></strong>
+          </div>
+          <div>
+            <span>Risk score</span>
+            <strong><%= emp.risk_score %></strong>
+          </div>
+        </div>
+
+        <p class="risk-reason"><%= emp.reason %></p>
+      </article>
+    <% }) %>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Team heatmap</h2>
+    <span class="muted">Distribution of low, medium, and high risk by department</span>
+  </div>
+
+  <table class="data-table heatmap-table">
+    <thead>
+      <tr>
+        <th>Department</th>
+        <th>Total</th>
+        <th>High</th>
+        <th>Medium</th>
+        <th>Low</th>
+        <th>Average risk</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% teamHeatmap.forEach((row) => { %>
+        <tr>
+          <td><%= row.department_name %></td>
+          <td><%= row.total %></td>
+          <td class="heat-cell heat-high"><%= row.high %></td>
+          <td class="heat-cell heat-medium"><%= row.medium %></td>
+          <td class="heat-cell heat-low"><%= row.low %></td>
+          <td><%= row.avgRiskScore %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Capacity vs demand chart</h2>
+    <span class="muted">Department capacity compared with workload demand</span>
+  </div>
+
+  <div class="capacity-list">
+    <% capacityDemand.forEach((item) => { %>
+      <div class="capacity-row">
+        <div class="capacity-meta">
+          <h3><%= item.department_name %></h3>
+          <p>
+            <strong><%= item.utilisationPct %>%</strong> utilised ·
+            <span><%= item.status %></span>
+          </p>
+        </div>
+
+        <div class="capacity-bars">
+          <div class="bar-track">
+            <div class="bar-fill capacity-fill" style="width: 100%;"></div>
+          </div>
+          <div class="bar-track">
+            <div
+              class="bar-fill demand-fill"
+              style="width: <%= Math.min(item.utilisationPct, 140) %>%;">
+            </div>
+          </div>
+        </div>
+
+        <div class="capacity-values">
+          <span>Capacity: <%= item.capacityUnits %></span>
+          <span>Demand: <%= item.demandUnits %></span>
+          <span>Gap: <%= item.gap %></span>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2>Manager scorecard</h2>
+    <span class="muted">Inferred from manager titles and department conditions</span>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Manager</th>
+        <th>Role</th>
+        <th>Department</th>
+        <th>Team size</th>
+        <th>High risk</th>
+        <th>Utilisation</th>
+        <th>Score</th>
+        <th>Guidance</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (!managerScorecard.length) { %>
+        <tr>
+          <td colspan="8">No manager-title records found yet.</td>
+        </tr>
+      <% } %>
+
+      <% managerScorecard.forEach((manager) => { %>
+        <tr>
+          <td><%= manager.full_name %></td>
+          <td><%= manager.position_title || '-' %></td>
+          <td><%= manager.department_name || '-' %></td>
+          <td><%= manager.employee_count %></td>
+          <td><%= manager.high_risk_employees %></td>
+          <td><%= manager.utilisation_pct %>%</td>
+          <td><strong><%= manager.manager_health_score %></strong></td>
+          <td><%= manager.guidance %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>
+
+<%- include('partials/footer') %>
